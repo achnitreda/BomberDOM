@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Bomberman-dom</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+
+        <div id="login-screen" class="screen">
+            <div class="login-container">
+                <h1>BomberMan Multiplayer</h1>
+                <div class="login-form">
+                    <input type="text" id="nickname-input"
+                        placeholder="Enter your nickname" maxlength="15" />
+                    <button id="join-button">Join Game</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="waiting-screen" class="screen hidden">
+            waiting-screen
+        </div>
+
+        <div id="game-screen" class="screen hidden">
+            game-screen
+        </div>
+
+        <div id="win-screen" class="overlay-screen hidden">
+            win-screen
+        </div>
+
+        <div id="lose-screen" class="overlay-screen hidden">
+            lose-screen
+        </div>
+
+        <script type="module" src="./js/main.js"></script>
+    </body>
+</html>
