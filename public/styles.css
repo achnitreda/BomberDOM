@@ -1,0 +1,154 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+#app {
+    width: 100vw;
+    height: 100vh;
+}
+
+.bg {
+    background-color: #1A1F2C;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.bg::before,
+.bg::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0.2;
+}
+
+.bg::before {
+    background-image:
+        linear-gradient(rgba(180, 119, 250, 0.7) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(125, 98, 247, 0.7) 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+.pixel-particle {
+    position: absolute;
+    opacity: .2;
+    animation: pixel-pulse 2s infinite;
+}
+
+@keyframes pixel-pulse {
+    0% {
+        opacity: .2;
+    }
+
+    50% {
+        opacity: .9;
+    }
+
+    100% {
+        opacity: .2;
+    }
+}
+
+/* Container for the bomb logo */
+.bomb-logo {
+    width: 48rem;
+    height: 48rem;
+    position: relative;
+  }
+  
+  /* Background glow effect */
+  .bomb-logo-glow {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.3), rgba(51, 195, 240, 0.3));
+    border-radius: 50%;
+    filter: blur: 24px;
+  }
+  
+  /* Main bomb container */
+  .bomb-container {
+    width: 16rem;
+    height: 16rem;
+    background-color: #1f2937;
+    border-radius: 50%;
+    border: 4px solid white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    animation: bounce-light 2s infinite;
+  }
+  
+  /* Hover effect for the bomb */
+  .bomb-container:hover .bomb-icon {
+    transform: scale(1.1);
+  }
+  
+  /* Bomb icon styling */
+  .bomb-icon {
+    width: 10rem;
+    height: 10rem;
+    color: #F97316;
+    animation: pulse 2s infinite;
+    transition: transform 0.3s;
+  }
+  
+  /* Flame positioning and animation */
+  .flame-icon {
+    position: absolute;
+    top: -2rem;
+    right: 2rem;
+    width: 3rem;
+    height: 3rem;
+    color: #F97316;
+    animation: pulse 2s infinite;
+  }
+  
+  /* Explosion positioning and animation */
+  .explosion-icon {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    color: #F97316;
+    animation: spin-slow 3s linear infinite;
+  }
+  
+  /* Animation keyframes */
+  @keyframes bounce-light {
+    0%, 100% {
+      transform: translateY(-5%);
+      box-shadow: 0 5px 15px 0px rgba(0, 0, 0, 0.1);
+    }
+    50% {
+      transform: translateY(0);
+      box-shadow: 0 2px 5px 0px rgba(0, 0, 0, 0.1);
+    }
+  }
+  
+  @keyframes spin-slow {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.8;
+      transform: scale(0.95);
+    }
+  }
+
+  /* hadir54726@linxues.com */
