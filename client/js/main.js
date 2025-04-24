@@ -3,7 +3,9 @@ import MiniFramework from "./mini-framework.js";
 const gameState = {
     playerId: null,
     nickname: '',
-    state: 'login'
+    state: 'login',
+    players: {},
+    countdown: null,
 }
 
 const store = MiniFramework.createStore(gameState)
@@ -56,10 +58,130 @@ function connectWebSocket() {
     }
 }
 
+function updatePlayersList(players) {
+    const container = document.getElementById('players-list-container')
+
+    const playersList = MiniFramework.createElement('ul', { id: 'players-list' },
+        ...Object.values(players).map(player =>
+            MiniFramework.createElement('li', { key: player.id }, player.nickname)
+        )
+    );
+
+    MiniFramework.render(playersList, container);
+}
+
+function updatePlayerCount(count) {
+    document.getElementById('player-count').textContent = count
+}
+
+function addChatMessage(message, sender) {
+    const chatMessages = [
+        document.getElementById('chat-messages'),
+    ]
+
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    const isSystem = sender === 'system'
+
+    chatMessages.forEach(container => {
+        let messageContent
+
+        if (isSystem) {
+            messageContent = [
+                MiniFramework.createElement('span', { class: 'system' }, message),
+                MiniFramework.createElement('span', { class: 'time' }, time)
+            ]
+        } else {
+            messageContent = [
+                MiniFramework.createElement('span', { class: 'sender' }, `${sender}:`),
+                message,
+                MiniFramework.createElement('span', { class: 'time' }, time)
+            ]
+        }
+
+        const msgElement = MiniFramework.createElement('div', { class: 'chat-message', key: Date.now().toString() }, ...messageContent)
+
+        // Render to a temporary container
+        const tempDiv = document.createElement('div');
+        MiniFramework.render(msgElement, tempDiv);
+
+        container.appendChild(tempDiv.firstChild);
+        container.scrollTop = container.scrollHeight
+    })
+}
+
+function showCountdown(seconds, isWaiting) {
+    const countdownContainer = document.getElementById('countdown-container')
+    const countdownElement = document.getElementById('countdown')
+    const waitingMessage = document.getElementById('waiting-message')
+
+    countdownContainer.classList.remove('hidden')
+    countdownElement.textContent = seconds
+    if (isWaiting) {
+        countdownContainer.style.color = '#FFA500';
+        waitingMessage.textContent = 'Waiting for more players...';
+    } else {
+        countdownContainer.style.color = '#FF0000';
+        waitingMessage.textContent = 'Get ready to play!'
+    }
+}
+
 function handleServerMessage(data) {
     switch (data.type) {
         case 'playerId':
             store.setState({ playerId: data.playerId })
+            break
+        case 'joinedRoom':
+            store.setState({
+                players: data.players,
+                state: 'waiting'
+            })
+            showScreen('waiting')
+            updatePlayersList(data.players)
+            updatePlayerCount(data.playerCount)
+            break
+        case 'playerJoined':
+            const updatedPlayers = { ...store.getState().players }
+            updatedPlayers[data.player.id] = data.player
+            store.setState({ players: updatedPlayers })
+            updatePlayersList(updatedPlayers)
+            updatePlayerCount(Object.keys(updatedPlayers).length)
+            addChatMessage(`${data.player.nickname} has joined the game.`, 'system');
+            break
+        case 'playerLeft':
+            const currentPlayers = { ...store.getState().players };
+            const leftPlayer = currentPlayers[data.playerId];
+            delete currentPlayers[data.playerId];
+            store.setState({ players: currentPlayers })
+            updatePlayersList(currentPlayers)
+            updatePlayerCount(Object.keys(currentPlayers).length)
+            if (leftPlayer) {
+                addChatMessage(`${leftPlayer.nickname} has left the game.`, 'system')
+            }
+            break
+        case 'countdown':
+            const isWaiting = data.isWaiting || false;
+            store.setState({ countdown: data.countdown })
+            showCountdown(data.countdown, isWaiting)
+            break
+        case 'countdownCancelled':
+            document.getElementById('countdown-container').classList.add('hidden');
+            break;
+        case 'gameStart':
+            store.setState({ 
+                players: data.players,
+                state: 'playing'
+              });
+              showScreen('game');
+            break
+        case 'roomReset':
+            store.setState({
+                state: 'login',
+                players: {},
+            })
+            showScreen('login')
+            break
+        case 'error':
+            alert(data.message)
             break
     }
 }

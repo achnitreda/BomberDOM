@@ -27,7 +27,10 @@ const MiniFramework = {
         const element = document.createElement(vNode.tag)
 
         for (const [attr, value] of Object.entries(vNode.attrs || {})) {
-            if (attr.startsWith('on')) {
+            if (attr === 'key') {
+                // Transfer key to data-id for reconciliation
+                element.setAttribute('data-id', value)
+            } else if (attr.startsWith('on')) {
                 const eventName = attr.slice(2).toLowerCase()
                 element.addEventListener(eventName, value)
             } else if (attr === 'ref') {
@@ -95,6 +98,8 @@ const MiniFramework = {
             container.innerHTML = ''
             container.appendChild(this.createRealElement(vNode))
         } else {
+            // console.log("vNode ->", vNode)
+            // console.log("oldVNode ->", oldVNode)
             this.updateElement(container, vNode, oldVNode, 0)
         }
 
@@ -293,8 +298,10 @@ const MiniFramework = {
                     // Move node to new position
                     if (newIndex >= parent.childNodes.length) {
                         parent.appendChild(node);
+                        // console.log("u-> add")
                     } else {
                         parent.insertBefore(node, parent.childNodes[newIndex]);
+                        // console.log("u-> insertBefore")
                     }
                 }
 
@@ -310,10 +317,10 @@ const MiniFramework = {
                 const newElement = this.createRealElement(newChild);
                 if (newIndex >= parent.childNodes.length) {
                     parent.appendChild(newElement);
-                    console.log("add")
+                    // console.log("add")
                 } else {
                     parent.insertBefore(newElement, parent.childNodes[newIndex]);
-                    console.log("insertBefore")
+                    // console.log("insertBefore")
                 }
             }
         });
@@ -325,8 +332,10 @@ const MiniFramework = {
                 // Find and remove node
                 for (let i = 0; i < parent.childNodes.length; i++) {
                     const domNode = parent.childNodes[i];
+                    // console.log('-->',domNode.getAttribute('data-id'))
                     if (domNode instanceof HTMLElement && domNode.getAttribute && domNode.getAttribute('data-id') === key) {
                         parent.removeChild(domNode);
+                        // console.log("remove")
                         break;
                     }
                 }

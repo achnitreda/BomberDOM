@@ -20,11 +20,51 @@
         </div>
 
         <div id="waiting-screen" class="screen hidden">
-            waiting-screen
+            <div class="waiting-container">
+                <h1>Waiting for Players</h1>
+                <div class="players-info">
+                    <h2>Players (<span id="player-count">0</span>/4)</h2>
+                    <div id="players-list-container"></div>
+                </div>
+                <div class="waiting-info">
+                    <p id="waiting-message">Waiting for more players to
+                        join...</p>
+                    <div id="countdown-container" class="hidden">
+                        <p>Game starting in <span id="countdown">10</span>
+                            seconds!</p>
+                    </div>
+                </div>
+                <div class="chat-container">
+                    <h2>Chat</h2>
+                    <div id="chat-messages" class="chat-messages"></div>
+                    <div class="chat-input">
+                        <input type="text" id="chat-input"
+                            placeholder="Type a message..." />
+                        <button id="chat-send">Send</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div id="game-screen" class="screen hidden">
-            game-screen
+            <div class="game-container">
+                <div class="game-header">
+                    <div class="lifes">
+                        Lives: <span id="lives-count">3</span>
+                    </div>
+                </div>
+                <div id="game-board">
+                </div>
+                <div id="game-chat" class="game-chat">
+                    <h3>Chat</h3>
+                    <div id="game-chat-messages" class="chat-messages"></div>
+                    <div class="chat-input">
+                        <input type="text" id="game-chat-input"
+                            placeholder="Type a message..." />
+                        <button id="game-chat-send">Send</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div id="win-screen" class="overlay-screen hidden">

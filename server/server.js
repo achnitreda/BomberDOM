@@ -1,8 +1,18 @@
 import http from 'http'
 import fs from 'fs'
 import path from 'path'
-import { WebSocketServer } from 'ws'
+import { WebSocket, WebSocketServer } from 'ws'
 import { v4 as uuidv4 } from 'uuid';
+
+let activeRoom = {
+    playerCount: 0,
+    players: {},
+    state: 'waiting',
+    countdown: null,
+    countdownInterval: null,
+}
+
+let clients = {}
 
 // Create Http server
 const server = http.createServer((req, res) => {
@@ -49,14 +59,173 @@ const server = http.createServer((req, res) => {
     })
 })
 
+
+function startCountdown() {
+    if (activeRoom.state !== 'waiting') return
+
+    activeRoom.state = 'countdown'
+    activeRoom.countdown = 10
+
+    broadcastToAll({
+        type: 'countdown',
+        countdown: activeRoom.countdown,
+        isWaiting: false
+    })
+
+    activeRoom.countdownInterval = setInterval(() => {
+        activeRoom.countdown--
+
+        if (activeRoom.countdown <= 0) {
+            clearInterval(activeRoom.countdownInterval)
+            startGame()
+        } else {
+            broadcastToAll({
+                type: 'countdown',
+                countdown: activeRoom.countdown,
+                isWaiting: false
+            })
+        }
+    }, 1000)
+}
+
+function startGame() {
+    activeRoom.state = 'playing'
+
+    broadcastToAll({
+        type: 'gameStart',
+        players : activeRoom.players,
+    })
+
+}
+
+function addPlayerToRoom(playerId, nickname) {
+    if (activeRoom.playerCount >= 4) return false
+
+    activeRoom.players[playerId] = {
+        id: playerId,
+        nickname,
+        alive: true,
+        lifes: 3,
+        bombs: 1,
+        flames: 1,
+        speed: 1,
+    }
+
+    activeRoom.playerCount++
+
+    if (activeRoom.playerCount === 4) {
+        startCountdown()
+    } else if (activeRoom.playerCount >= 2 && !activeRoom.countdownInterval && activeRoom.state === 'waiting') {
+        let waitTime = 20;
+
+        broadcastToAll({
+            type: 'countdown',
+            countdown: waitTime,
+            isWaiting: true
+        });
+
+        activeRoom.countdownInterval = setInterval(() => {
+            waitTime--;
+
+            broadcastToAll({
+                type: 'countdown',
+                countdown: waitTime,
+                isWaiting: true
+            });
+
+            if (waitTime <= 0) {
+                clearInterval(activeRoom.countdownInterval);
+                activeRoom.countdownInterval = null;
+
+                if (activeRoom.state === 'waiting' && activeRoom.playerCount >= 2) {
+                    startCountdown();
+                }
+            }
+        }, 1000);
+
+    }
+    return true
+}
+
+function removePlayerFromRoom(playerId) {
+    if (!activeRoom.players[playerId]) return false;
+
+    delete activeRoom.players[playerId];
+    activeRoom.playerCount--;
+
+    broadcastToAll({
+        type: 'playerLeft',
+        playerId
+    });
+
+    if (activeRoom.playerCount < 2) {
+        if (activeRoom.countdownInterval) {
+            clearInterval(activeRoom.countdownInterval);
+            activeRoom.countdownInterval = null;
+        }
+
+        activeRoom.state = 'waiting';
+
+        broadcastToAll({
+            type: 'countdownCancelled'
+        });
+    }
+
+    if (activeRoom.playerCount === 0) {
+        resetRoom();
+    }
+
+    return true
+}
+
+function broadcastToOthers(sender, message) {
+    wss.clients.forEach(client => {
+        if (client !== sender && client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(message))
+        }
+    })
+}
+
+function broadcastToAll(message) {
+    wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(message))
+        }
+    })
+}
+
+function handleDisconnect(playerId) {
+    removePlayerFromRoom(playerId);
+    delete clients[playerId];
+}
+
+function resetRoom() {
+    if (activeRoom.countdownInterval) {
+        clearInterval(activeRoom.countdownInterval);
+    }
+
+    activeRoom = {
+        playerCount: 0,
+        players: {},
+        state: 'waiting',
+        countdown: null,
+        countdownInterval: null,
+    }
+
+    broadcastToAll({
+        type: 'roomReset'
+    })
+}
+
 // Setup Websocket server
 const wss = new WebSocketServer({ server })
 
 wss.on('connection', (ws) => {
-    // DEBUG
     console.log('Client connected')
 
     const playerId = uuidv4()
+
+    clients[playerId] = ws
 
     ws.send(JSON.stringify({
         type: 'playerId',
@@ -64,12 +233,41 @@ wss.on('connection', (ws) => {
     }))
 
     ws.on('message', (message) => {
-        // Process messages
-        console.log(JSON.parse(message))
+        try {
+            const data = JSON.parse(message)
+
+            switch (data.type) {
+                case 'joinGame':
+                    const added = addPlayerToRoom(playerId, data.nickname)
+
+                    if (added) {
+                        ws.send(JSON.stringify({
+                            type: 'joinedRoom',
+                            players: activeRoom.players,
+                            playerCount: activeRoom.playerCount,
+
+                        }))
+
+                        broadcastToOthers(ws, {
+                            type: 'playerJoined',
+                            player: activeRoom.players[playerId]
+                        })
+                    } else {
+                        ws.send(JSON.stringify({
+                            type: 'error',
+                            message: 'Could not join game. Room is full.'
+                        }))
+                    }
+                    break
+            }
+        } catch (error) {
+            console.error('Error processing message:', error)
+        }
     })
 
     ws.on('close', () => {
-        // Handle disconnection
+        handleDisconnect(playerId)
+        delete clients[playerId]
     });
 })
 
