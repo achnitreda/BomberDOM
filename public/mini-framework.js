@@ -24,7 +24,9 @@ const MiniFramework = {
             return document.createTextNode(String(vNode))
         }
 
-        const element = document.createElement(vNode.tag)
+        const isSvg = vNode.tag === "svg" || ["circle", "path", "line", "rect"].includes(vNode.tag);
+        const element = isSvg ? document.createElementNS("http://www.w3.org/2000/svg", vNode.tag)
+            : document.createElement(vNode.tag)
 
         for (const [attr, value] of Object.entries(vNode.attrs || {})) {
             if (attr.startsWith('on')) {

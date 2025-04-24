@@ -35,24 +35,10 @@ const particls = Array.from({ length: 30 }).map(() => {
     )
 })
 
-const bombIcon = mf.createElement("div", { class: "bomb-logo" },
-   mf.createElement("div", {class: "bomb-logo-glow"}),
-   mf.createElement("div", {class: "bomb-container"},
-        mf.createElement("div", {class: "bomb-icon"}, 
-            mf.createElement("svg", {
-                xmlns: "http://www.w3.org/2000/svg",
-                fill: "none",
-                stroke: "red",
-                strokeWidth: "2"
-            }, 
-                mf.createElement("circle", {cx: "12", cy: "12", r: "8"}),
-                mf.createElement("path", {d: "M12 2v4"}),
-                mf.createElement("path", {d: "M5 5l2.5 2.5"})
-            )
-        )
-   )
+const bombLogo = mf.createElement("div", { class: "bomb-logo-container" },
+    
 )
 
-const homePage = mf.createElement("div", { class: "bg" }, ...particls)
+const homePage = mf.createElement("div", { class: "particles-container" }, ...particls, bombLogo)
 
 mf.render(homePage, app)
