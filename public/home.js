@@ -3,9 +3,16 @@ import { store } from "./game.js";
 
 function handleNameSub() {
     const name = store.getState().u_name
-    // console.log(name);
-    
-    //send trough ws
+
+    const ws = new WebSocket("ws://localhost:3000")
+    ws.onopen = () => {
+        console.log("ws connected front!!!!");
+        ws.send(name)
+    }
+    ws.onmessage = (msg) => {
+        console.log(msg.data);
+    }
+
 }
 
 function handleInput(e) {

@@ -1,12 +1,12 @@
 import http  from "http"
 import fs  from "fs"
 import path  from "path"
+import { WebSocketServer } from "ws"
 
 const server = http.createServer((req, res) => {
     const pathName = "public" + (req.url == "/" ? "/index.html" : req.url); 
     const fExt = path.extname(pathName);
     let contentType = "text/html"
-console.log(pathName);
 
     switch(fExt) {
         case ".js": contentType = "text/javascript"; break;
@@ -24,6 +24,22 @@ console.log(pathName);
             res.writeHead(200,{"Content-Type": contentType})
             res.end(content)
         }
+    })
+})
+
+const wsServer = new WebSocketServer({server})
+
+wsServer.on("connection", (ws) => {
+    console.log("connected!! =>");
+    
+    ws.on("message", (msg) => {
+        console.log(msg.toString());
+    })
+
+    ws.send("welcom!!!!!!!!!!!!!!")
+
+    ws.on("close", () => {
+        console.log("connection closed!!!!!!");
     })
 })
 
