@@ -27,7 +27,7 @@
   background-size: 20px 20px;
 }
 
-.particles-container {
+.home-view {
   width: 100%;
   height: 100%;
   position: relative;
@@ -36,6 +36,7 @@
 .pixel-particle {
   position: absolute;
   opacity: .2;
+  pointer-events: none;
   animation: pixel-pulse 2s infinite;
 }
 
@@ -53,16 +54,22 @@
   }
 }
 
-/* Container for the bomb logo */
-.bomb-logo-container {
+.logo-container {
+  position: relative;
   width: 280px;
   height: 280px;
   margin: auto;
   display: flex;
-  justify-items: center;
   justify-content: center;
+  align-items: center;
+}
+
+.glow-bg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
   background: radial-gradient(circle at center, 
-  rgba(249, 115, 22, 0.2) 0%,
+  rgba(249, 116, 22, 0.658) 0%,
   rgba(51, 195, 240, 0.2) 100% );
   border-radius: 50%;
   filter: blur(20px);
@@ -82,171 +89,79 @@
 }
 
 
-.bomb-logo {
+.logo {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: min(80vw, 400px);
-  aspect-ratio: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.bomb-container {
-  position: relative;
+  top: -10px;
+  left: 10px;
   width: 100%;
   height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: float 6s ease-in-out infinite;
+  background-image: url("./bomb-logo.png");
+  background-size: 100%;
+  /* background-color: rgba(51, 195, 240, 0.1); */
 }
 
-.bomb {
-  position: relative;
+.bomberman-header {
+  margin-top: -50px;
+  font-size: 4rem;
+  text-align: center;
+  color: rgba(196, 90, 14, 0.6);
+
+  text-shadow:
+    2px 2px 0 #F97316,
+    4px 4px 0 #D97706,
+    5px 5px 4px rgba(0, 0, 0, 0.2);
+
+  letter-spacing: 3px;
+  /* margin-top: 60px; */
+}
+
+.login-container {
   width: 80%;
-  height: 80%;
+  height: 200px;
+  margin: 100px  auto 0 auto;
+  background-color: #18274eb4;
+  max-width: 700px;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
 }
 
-.bomb-body {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 100%;
-  background: #1f2937;
-  border: 4px solid #ffffff;
-  border-radius: 50%;
-  box-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
-  animation: pulse 2s ease-in-out infinite;
+.u_name {
+  width: 90%;
+  height: 40px;
+  margin:  auto ;
+  color: white;
+  padding: 5px;
+  border: 2px solid rgba(155, 135, 245, 0.6);
+  border-radius: 8px;
+  font-family: 'Arial', sans-serif;
+  font-size: 1.2rem;
+  background-color: rgba(42, 30, 94, 0.8);
+  outline: none;
+  transition: all 0.2s ease;
 }
 
-.bomb-fuse {
-  position: absolute;
-  top: -15%;
-  left: 50%;
-  width: 8px;
-  height: 20%;
-  background: #F97316;
-  transform: translateX(-50%);
-  border-radius: 4px;
+.u_name::placeholder {
+  color: rgba(157, 140, 229, 0.6);
 }
 
-.flame {
-  position: absolute;
-  top: -25%;
-  left: 50%;
-  transform: translateX(-50%);
+.u_name:focus {
+  border-color: rgba(155, 135, 245, 1);
 }
 
-.flame-particle {
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  background: #F97316;
-  border-radius: 50%;
-  filter: blur(2px);
-  animation: flicker 1.5s ease-in-out infinite;
-}
-
-.flame-particle:nth-child(1) {
-  opacity: 0.8;
-  transform: translateY(-10px);
-}
-
-.flame-particle:nth-child(2) {
-  opacity: 0.6;
-  transform: translate(-10px, 0);
-}
-
-.flame-particle:nth-child(3) {
-  opacity: 0.6;
-  transform: translate(10px, 0);
-}
-
-.sparkles {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-}
-
-.sparkle {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  background: #F97316;
-  border-radius: 50%;
-}
-
-.sparkle:nth-child(1) {
-  top: 20%;
-  right: 10%;
-  animation: sparkle 2s ease-in-out infinite;
-}
-
-.sparkle:nth-child(2) {
-  bottom: 20%;
-  right: 15%;
-  animation: sparkle 2s ease-in-out infinite 0.5s;
-}
-
-.sparkle:nth-child(3) {
-  bottom: 30%;
-  left: 15%;
-  animation: sparkle 2s ease-in-out infinite 1s;
-}
-
-@keyframes float {
-
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-20px);
-  }
-}
-
-@keyframes pulse {
-
-  0%,
-  100% {
-    transform: scale(1);
-  }
-
-  50% {
-    transform: scale(0.95);
-  }
-}
-
-@keyframes flicker {
-
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.6;
-    transform: scale(0.9);
-  }
-}
-
-@keyframes sparkle {
-
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.3;
-    transform: scale(0.5);
-  }
+.sub-bt {
+  width: 90%;
+  background-color: rgba(30, 172, 124, 0.884);
+  height: 40px;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: large;
+  cursor: pointer;
+  border-radius: 8px;
+  margin-top: 15px;
 }
 
 /* hadir54726@linxues.com */
