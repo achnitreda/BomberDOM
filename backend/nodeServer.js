@@ -1,95 +1,131 @@
 const http = require('http');
 const WebSocket = require('ws');
 
+let room = {
+  playerCount: 0,
+  players: {},               // { clientId: { ws, nickname } }
+  state: 'waiting',          // 'waiting' | 'countdown' | 'started'
+  countdown: 10,
+  countdownInterval: null
+};
+
 
 const server = http.createServer((req, res) => {
   if (req.url === '/') {
-    res.writeHead(200, { 'Content-Type': 'text/plain' })
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.end('');
   }
-})
+});
 
 
-const wss = new WebSocket.Server({ server })
-
-const players = new Map()
-let countdownTimer = null
-let c = 10
+const wss = new WebSocket.Server({ server });
 
 function broadcast(data) {
-  const m = JSON.stringify(data)
-  wss.clients.forEach(client => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(m)
+  const message = JSON.stringify(data)
+  for (const Id in room.players) {
+    const player = room.players[Id]
+    if (player.ws.readyState === WebSocket.OPEN) {
+      player.ws.send(message)
     }
-  })
+  }
 }
+
 
 function startCountdown() {
-  if (countdownTimer) return
+  if (room.countdownInterval) return
 
-  countdownTimer = setInterval(() => {
-    if (c <= 0) {
-      clearInterval(countdownTimer)
-      countdownTimer = null
-      c = 10
+  room.state = 'countdown'
+  room.countdown = 10
+
+  room.countdownInterval = setInterval(() => {
+    if (room.countdown <= 0) {
+      clearInterval(room.countdownInterval)
+      room.countdownInterval = null
+      room.state = 'started'
 
       broadcast({ type: 'start-game' })
+      room.countdown = 10
     } else {
-      broadcast({ type: 'countdown', value: c })
-      c--
+      broadcast({ type: 'countdown', value: room.countdown })
+      room.countdown--
     }
-  }, 1000)
+  }, 1000);
 }
 
 
-wss.on('connection', (ws) => {
-  console.log('connected')
+function stopCountdown() {
+  if (room.countdownInterval) {
+    clearInterval(room.countdownInterval)
+    room.countdownInterval = null
+    room.countdown = 10
+    room.state = 'waiting'
+    console.log('Countdown stopped: not enough players')
+  }
+}
 
-  ws.on('message', (message) => {
-    const data = JSON.parse(message.toString())
+function generateId() {
+  return Math.random().toString(36).substring(2, 10)
+}
+
+wss.on('connection', (ws) => {
+  const playerId = generateId()
+
+  console.log(`Client connected: ${playerId}`)
+
+  ws.on('message', (msg) => {
+    const data = JSON.parse(msg.toString())
 
     if (data.type === 'join') {
+      const nickname = data.nickname?.trim()
 
-      if (!data.nickname) {
-        return ws.send(JSON.stringify({ type: 'error', message: 'invalid nickname' }));
+      if (!nickname) {
+        return ws.send(JSON.stringify({ type: 'error', message: 'Invalid nickname' }))
       }
 
-      players.set(ws, { nickname: data.nickname })
+      room.players[playerId] = { ws, nickname }
+      room.playerCount++;
 
-     // console.log(`Player joined: ${data.nickname}`)
-      //console.log(`Players online: ${players.size}`)
+      console.log(`Player joined: ${nickname} (ID: ${playerId})`)
 
       broadcast({
         type: 'join',
-        nickname: data.nickname,
-        pOnline: players.size,
+        nickname,
+        pOnline: room.playerCount
       })
 
-      if (players.size >= 2 && !countdownTimer) {
+      if (room.playerCount >= 2 && room.state === 'waiting') {
         startCountdown()
+      }
+    }else if (data.type === 'chat') {
+      if (data.message.trim()) {
+        broadcast({
+          type: 'chat',
+          nickname: data.nickname,
+          message: data.message.trim()
+        })
       }
     }
   })
 
   ws.on('close', () => {
-    if (players.has(ws)) {
-      //const player = players.get(ws)
-      players.delete(ws)
-      
-    }
+    if (room.players[playerId]) {
+      const nickname = room.players[playerId].nickname
+      delete room.players[playerId]
+      room.playerCount--;
 
-    broadcast({ type: 'leave', pOnline: players.size })
+      console.log(`Player left: ${nickname} (ID: ${playerId})`);
 
-    if (players.size < 2 && countdownTimer) {
-      clearInterval(countdownTimer)
-      countdownTimer = null
-      c = 10
-      //console.log('c stopped')
+      broadcast({
+        type: 'leave',
+        pOnline: room.playerCount
+      })
+
+      if (room.playerCount < 2 && room.state === 'countdown') {
+        stopCountdown()
+      }
     }
   })
 })
-
 
 server.listen(3000, () => {
   console.log('Server running at http://localhost:3000')
