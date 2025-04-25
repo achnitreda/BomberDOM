@@ -93,7 +93,7 @@ function startGame() {
 
     broadcastToAll({
         type: 'gameStart',
-        players : activeRoom.players,
+        players: activeRoom.players,
     })
 
 }
@@ -217,6 +217,34 @@ function resetRoom() {
     })
 }
 
+function handleChatMessage(playerId, data) {
+    if (!activeRoom.players[playerId]) return
+
+    if (data.message.length > 100) {
+        ws.send(JSON.stringify({
+            type: 'error',
+            message: 'Message is too long.'
+        }))
+        return
+    }
+    if (data.message.length < 1) {
+        ws.send(JSON.stringify({
+            type: 'error',
+            message: 'Message is too short.'
+        }))
+        return
+    }
+
+    const message = {
+        type: 'chatMessage',
+        sender: activeRoom.players[playerId].nickname,
+        message: data.message,
+        timestamp: Date.now()
+    };
+
+    broadcastToAll(message)
+}
+
 // Setup Websocket server
 const wss = new WebSocketServer({ server })
 
@@ -259,6 +287,9 @@ wss.on('connection', (ws) => {
                         }))
                     }
                     break
+                case 'chatMessage':
+                    handleChatMessage(playerId, data);
+                    break;
             }
         } catch (error) {
             console.error('Error processing message:', error)

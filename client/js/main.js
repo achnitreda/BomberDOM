@@ -23,6 +23,22 @@ const screens = {
 function init() {
     document.getElementById('join-button').addEventListener('click', handleJoinGame)
 
+    document.getElementById('chat-send').addEventListener('click', () => {
+        sendChatMessage('chat-input');
+    });
+
+    document.getElementById('chat-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') sendChatMessage('chat-input');
+    });
+
+    document.getElementById('game-chat-send').addEventListener('click', () => {
+        sendChatMessage('game-chat-input');
+    });
+
+    document.getElementById('game-chat-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') sendChatMessage('game-chat-input');
+    });
+
     showScreen('login')
 }
 
@@ -77,6 +93,7 @@ function updatePlayerCount(count) {
 function addChatMessage(message, sender) {
     const chatMessages = [
         document.getElementById('chat-messages'),
+        document.getElementById('game-chat-messages')
     ]
 
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -167,12 +184,15 @@ function handleServerMessage(data) {
             document.getElementById('countdown-container').classList.add('hidden');
             break;
         case 'gameStart':
-            store.setState({ 
+            store.setState({
                 players: data.players,
                 state: 'playing'
-              });
-              showScreen('game');
+            });
+            showScreen('game');
             break
+        case 'chatMessage':
+            addChatMessage(data.message, data.sender);
+            break;
         case 'roomReset':
             store.setState({
                 state: 'login',
@@ -217,6 +237,18 @@ function sendJoinRequest(nickname) {
         nickname,
         playerId: store.getState().playerId
     }))
+}
+
+function sendChatMessage(inputId) {
+    const input = document.getElementById(inputId);
+    const message = input.value.trim();
+    if (message && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({
+            type: 'chatMessage',
+            message,
+        }));
+        input.value = '';
+    }
 }
 
 document.addEventListener('DOMContentLoaded', init)
