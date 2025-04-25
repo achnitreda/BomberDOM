@@ -1,4 +1,4 @@
-import Mini from '/mini-framework.js';
+import Mini from './mini-framework.js';
 
 let nickname = ''
 let c = null;
