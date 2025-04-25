@@ -1,4 +1,4 @@
-import Mini from '../../mini-framework.js';
+import Mini from '/mini-framework.js';
 
 let nickname = ''
 let c = null;
@@ -77,7 +77,7 @@ function WaitingRoom({ playersOnline, c }) {
 
 function GameScreen() {
   return Mini.createElement('div', { class: 'game-screen' }, [
-    Mini.createElement('h1', {}, '🎮 You\'re in the Game!'),
+    Mini.createElement('h1', {}, 'CHAT'),
     ChatComponent()
   ])
 }
@@ -104,7 +104,7 @@ function ChatComponent() {
 
   return Mini.createElement('div', { class: 'chat-box' }, [
     Mini.createElement('div', { class: 'messages' }, messages.map((msg) =>
-      Mini.createElement('p', {}, `${msg.nickname}: ${msg.message}`)
+      Mini.createElement('p', {}, `${msg.nickname} : ${msg.message}`)
     )),
     inGame ? input : null
   ])
