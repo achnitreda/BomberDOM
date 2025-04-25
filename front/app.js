@@ -1,50 +1,56 @@
 import Mini from './mini-framework.js';
 
-let nickname = ''
-let c = null;
-let playersOnline = 0
-let hasJoined = false
-let inGame = false
-let messages = []
 
-const socket = new WebSocket('ws://localhost:3000')
+let room = {
+nickname : '',
+c : null ,
+playersOnline : 0 ,
+hasJoined : false,
+inGame : false,
+messages : [],
+socket : null,
+}
+room.socket = new WebSocket('ws://localhost:3000')
 
-socket.onmessage = function (event) {
+room.socket.onmessage = function (event) {
   const data = JSON.parse(event.data)
 
   switch (data.type) {
     case 'join':
-      playersOnline = data.pOnline
-      c = null
+      room.playersOnline = data.pOnline
+      room.c = null
       Mini.render(App(), document.getElementById('app'))
       break
 
     case 'countdown':
-      c = data.value
+      room.c = data.value
       Mini.render(App(), document.getElementById('app'))
       break
 
     case 'start-game':
-      inGame = true
+      room.inGame = true
       Mini.render(App(), document.getElementById('app'))
       break
 
     case 'leave':
-      playersOnline = data.pOnline
-      c = null
+      room.playersOnline = data.pOnline
+      room.c = null
       Mini.render(App(), document.getElementById('app'))
       break
 
     case 'chat':
-      messages = [...messages, { nickname: data.nickname, message: data.message }]
+      room.messages = [...room.messages, {nickname: data.nickname, message: data.message }]
       Mini.render(App(), document.getElementById('app'))
        break
+    case 'error':
+      alert(data.message)
+      break
   }
 }
 
 function App() {
-  if (inGame) return GameScreen()
-  return hasJoined ? WaitingRoom({ playersOnline, c }) : NicknameForm()
+  if (room.inGame) return GameScreen()
+  return room.hasJoined ? WaitingRoom( room.playersOnline, room.c ) : NicknameForm()
 }
 
 function NicknameForm() {
@@ -52,22 +58,22 @@ function NicknameForm() {
     Mini.createElement('input', {
       type: 'text',
       placeholder: 'Enter your nickname',
-      oninput: (e) => nickname = e.target.value,
+      oninput: (e) => room.nickname = e.target.value,
     }),
     Mini.createElement('button', {
       onclick: () => {
-        if (nickname.trim()) {
-          hasJoined = true;
-          socket.send(JSON.stringify({ type: 'join', nickname }));
+        if (room.nickname.trim()) {
+          room.hasJoined = true;
+          room.socket.send(JSON.stringify({ type: 'join', nickname : room.nickname }));
         }
       }
     }, 'Join Game')
   ])
 }
 
-function WaitingRoom({ playersOnline, c }) {
+function WaitingRoom( p, c ) {
   return Mini.createElement('div', { class: 'waiting-room' }, [
-    Mini.createElement('p', {}, `Players Joined: ${playersOnline} / 4`),
+    Mini.createElement('p', {}, `Players Joined: ${p} / 4`),
     c !== null
       ? Mini.createElement('p', {}, `Game starts in ${c} seconds...`)
       : null,
@@ -91,9 +97,9 @@ function ChatComponent() {
     oninput: (e) => inputValue = e.target.value,
     onkeydown: (e) => {
       if (e.key === 'Enter' && inputValue.trim()) {
-        socket.send(JSON.stringify({
+        room.socket.send(JSON.stringify({
           type: 'chat',
-          nickname,
+          nickname: room.nickname,
           message: inputValue.trim()
         }))
         inputValue = ''
@@ -103,10 +109,10 @@ function ChatComponent() {
   })
 
   return Mini.createElement('div', { class: 'chat-box' }, [
-    Mini.createElement('div', { class: 'messages' }, messages.map((msg) =>
+    Mini.createElement('div', { class: 'messages' }, room.messages.map((msg) =>
       Mini.createElement('p', {}, `${msg.nickname} : ${msg.message}`)
     )),
-    inGame ? input : null
+    room.inGame ? input : null
   ])
 }
 

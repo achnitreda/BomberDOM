@@ -77,9 +77,10 @@ wss.on('connection', (ws) => {
 
     if (data.type === 'join') {
       const nickname = data.nickname?.trim()
-
-      if (!nickname) {
-        return ws.send(JSON.stringify({ type: 'error', message: 'Invalid nickname' }))
+      const nicknames = Object.values(room.players).map(player => player.nickname)
+      const isnickUsed = nicknames.includes(nickname)
+      if (!nickname || isnickUsed) {
+        return ws.send(JSON.stringify({ type: 'error', message: 'nickname already taken' }))
       }
 
       room.players[playerId] = { ws, nickname }
@@ -114,9 +115,10 @@ wss.on('connection', (ws) => {
     if (room.players[playerId]) {
       const nickname = room.players[playerId].nickname
       delete room.players[playerId]
-      room.playerCount--;
+      room.playerCount--
 
-      console.log(`Player left: ${nickname} (ID: ${playerId})`);
+      console.log(`Player left: ${nickname} (ID: ${playerId})`)
+      
 
       broadcast({
         type: 'leave',
