@@ -94,7 +94,10 @@ wss.on('connection', (ws) => {
       })
 
       if (room.playerCount >= 2 && room.state === 'waiting') {
-        startCountdown()
+          setTimeout(() => {
+          startCountdown()
+        }, 20000)
+        
       }
     }else if (data.type === 'chat') {
       if (data.message.trim()) {
