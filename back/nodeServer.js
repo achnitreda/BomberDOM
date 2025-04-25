@@ -1,37 +1,44 @@
 const http = require('http');
 const WebSocket = require('ws');
 
-let room = {
-  playerCount: 0,
-  players: {},               // { clientId: { ws, nickname } }
-  state: 'waiting',          // 'waiting' | 'countdown' | 'started'
-  countdown: 10,
-  countdownInterval: null
-};
+const rooms = new Map()
+let roomCounter = 1
 
-
-const server = http.createServer((req, res) => {
- if (req.url === '/') {
-    res.writeHead(200, { 'Content-Type': 'text/html' })
-    res.end('')
+function createRoom() {
+  const roomId = `room${roomCounter++}`
+  const room = {
+    id: roomId,
+    playerCount: 0,
+    players: {},
+    state: 'waiting',
+    countdown: 10,
+    countdownInterval: null,
+    waitTimeout: null,
   }
-})
+  rooms.set(roomId, room)
+  return room
+}
 
+function findAvailableRoom() {
+  for (const room of rooms.values()) {
+    if (room.state === 'waiting' && room.playerCount < 4) {
+      return room;
+    }
+  }
+  return createRoom()
+}
 
-const wss = new WebSocket.Server({ server });
-
-function broadcast(data) {
+function broadcast(room, data) {
   const message = JSON.stringify(data)
-  for (const Id in room.players) {
-    const player = room.players[Id]
+  for (const id in room.players) {
+    const player = room.players[id]
     if (player.ws.readyState === WebSocket.OPEN) {
       player.ws.send(message)
     }
   }
 }
 
-
-function startCountdown() {
+function startCountdown(room) {
   if (room.countdownInterval) return
 
   room.state = 'countdown'
@@ -42,26 +49,36 @@ function startCountdown() {
       clearInterval(room.countdownInterval)
       room.countdownInterval = null
       room.state = 'started'
-
-      broadcast({ type: 'start-game' })
+      broadcast(room, { type: 'start-game' })
       room.countdown = 10
     } else {
-      broadcast({ type: 'countdown', value: room.countdown })
+      broadcast(room, { type: 'countdown', value: room.countdown })
       room.countdown--
     }
-  }, 1000);
+  }, 1000)
 }
 
-
-function stopCountdown() {
+function stopCountdown(room) {
   if (room.countdownInterval) {
     clearInterval(room.countdownInterval)
     room.countdownInterval = null
     room.countdown = 10
     room.state = 'waiting'
-    console.log('Countdown stopped: not enough players')
+  }
+  if (room.waitTimeout) {
+    clearTimeout(room.waitTimeout)
+    room.waitTimeout = null
   }
 }
+
+const server = http.createServer((req, res) => {
+  if (req.url === '/') {
+    res.writeHead(200, { 'Content-Type': 'text/html' })
+    res.end('')
+  }
+})
+
+const wss = new WebSocket.Server({ server })
 
 function generateId() {
   return Math.random().toString(36).substring(2, 10)
@@ -69,7 +86,7 @@ function generateId() {
 
 wss.on('connection', (ws) => {
   const playerId = generateId()
-
+  let currentRoom = null
   console.log(`Client connected: ${playerId}`)
 
   ws.on('message', (msg) => {
@@ -77,56 +94,56 @@ wss.on('connection', (ws) => {
 
     if (data.type === 'join') {
       const nickname = data.nickname?.trim()
-      const nicknames = Object.values(room.players).map(player => player.nickname)
-      const isnickUsed = nicknames.includes(nickname)
-      if (!nickname || isnickUsed) {
+      if (!nickname) return
+
+      // Assign player to a room
+      currentRoom = findAvailableRoom();
+
+      const usedNick = Object.values(currentRoom.players).some(p => p.nickname === nickname);
+      if (usedNick) {
         return ws.send(JSON.stringify({ type: 'error', message: 'nickname already taken' }))
       }
 
-      room.players[playerId] = { ws, nickname }
-      room.playerCount++;
+      currentRoom.players[playerId] = { ws, nickname }
+      currentRoom.playerCount++
 
-      console.log(`Player joined: ${nickname} (ID: ${playerId})`)
-
-      broadcast({
+      broadcast(currentRoom, {
         type: 'join',
         nickname,
-        pOnline: room.playerCount
+        pOnline: currentRoom.playerCount
       })
 
-      if (room.playerCount >= 2 && room.state === 'waiting') {
-          setTimeout(() => {
-          startCountdown()
+      if (currentRoom.playerCount >= 2 && currentRoom.state === 'waiting' && !currentRoom.waitTimeout) {
+        currentRoom.waitTimeout = setTimeout(() => {
+          startCountdown(currentRoom)
         }, 20000)
-        
       }
-    }else if (data.type === 'chat') {
-      if (data.message.trim()) {
-        broadcast({
-          type: 'chat',
-          nickname: data.nickname,
-          message: data.message.trim()
-        })
-      }
+    }
+
+    if (data.type === 'chat' && currentRoom) {
+      broadcast(currentRoom, {
+        type: 'chat',
+        nickname: data.nickname,
+        message: data.message.trim()
+      })
     }
   })
 
   ws.on('close', () => {
-    if (room.players[playerId]) {
-      const nickname = room.players[playerId].nickname
-      delete room.players[playerId]
-      room.playerCount--
-
-      console.log(`Player left: ${nickname} (ID: ${playerId})`)
-      
-
-      broadcast({
+    if (currentRoom && currentRoom.players[playerId]) {
+      delete currentRoom.players[playerId]
+      currentRoom.playerCount--
+      broadcast(currentRoom, {
         type: 'leave',
-        pOnline: room.playerCount
+        pOnline: currentRoom.playerCount
       })
 
-      if (room.playerCount < 2 && room.state === 'countdown') {
-        stopCountdown()
+      if (currentRoom.playerCount < 2 && currentRoom.state === 'countdown') {
+        stopCountdown(currentRoom)
+      }
+
+      if (currentRoom.playerCount === 0) {
+        rooms.delete(currentRoom.id)
       }
     }
   })
