@@ -249,3 +249,66 @@ body {
   padding: 0.5rem;
   font-size: 0.9rem;
 }
+
+/* Game Elements */
+.cell {
+  position: relative;
+  width: var(--cell-size);
+  height: var(--cell-size);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.empty {
+  background-color: var(--board-bg);
+}
+
+.solidWall {
+  background-color: var(--solid-wall-bg);
+}
+
+.softWall {
+  background: var(--soft-wall-bg);
+  border: 3px solid var(--soft-wall-border);
+  box-shadow: inset 0 0 8px var(--soft-wall-border);
+}
+
+.player {
+  position: absolute;
+  width: calc(var(--cell-size) * 0.8);
+  height: calc(var(--cell-size) * 0.8);
+  background-image: url("./images/bomberman.png");
+  background-size: calc(var(--cell-size) * 0.8 * 4)
+    calc(var(--cell-size) * 0.8 * 4);
+  z-index: 10;
+  transition: transform 0.1s ease-out;
+}
+
+.player-1 {
+  filter: hue-rotate(0deg);
+}
+
+.player-2 {
+  filter: hue-rotate(90deg);
+}
+
+.player-3 {
+  filter: hue-rotate(180deg);
+}
+
+.player-4 {
+  filter: hue-rotate(270deg);
+}
+
+.player-name {
+  position: absolute;
+  font-size: 10px;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 2px 4px;
+  border-radius: 4px;
+  white-space: nowrap;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+}

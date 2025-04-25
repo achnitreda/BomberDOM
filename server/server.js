@@ -10,6 +10,7 @@ let activeRoom = {
     state: 'waiting',
     countdown: null,
     countdownInterval: null,
+    grid: null,
 }
 
 let clients = {}
@@ -64,7 +65,7 @@ function startCountdown() {
     if (activeRoom.state !== 'waiting') return
 
     activeRoom.state = 'countdown'
-    activeRoom.countdown = 10
+    activeRoom.countdown = 2
 
     broadcastToAll({
         type: 'countdown',
@@ -91,15 +92,59 @@ function startCountdown() {
 function startGame() {
     activeRoom.state = 'playing'
 
+    const map = generateMap()
+    activeRoom.grid = map
+
     broadcastToAll({
         type: 'gameStart',
         players: activeRoom.players,
+        map: map
     })
 
 }
 
+function generateMap() {
+    const width = 15
+    const height = 13
+    const map = []
+
+    const empty = 0
+    const soft = 1
+    const solid = 2
+
+    for (let i = 0; i < height; i++) {
+        map[i] = []
+        for (let j = 0; j < width; j++) {
+            if (i === 0 || i === height - 1 || j === 0 || j === width - 1) {
+                map[i][j] = solid
+            } else if (i % 2 === 0 && j % 2 === 0) {
+                map[i][j] = solid
+            } else if ((i <= 2 && j <= 2) ||  // Top-left
+                (i <= 2 && j >= width - 3) ||  // Top-right
+                (i >= height - 3 && j <= 2) ||  // Bottom-left
+                (i >= height - 3 && j >= width - 3)  // Bottom-right
+            ) {
+                map[i][j] = empty
+            } else {
+                map[i][j] = Math.random() < 0.6 ? empty : soft;
+            }
+        }
+    }
+
+    return map
+}
+
 function addPlayerToRoom(playerId, nickname) {
     if (activeRoom.playerCount >= 4) return false
+
+    const positions = [
+        { i: 1, j: 1 },        // Top-left
+        { i: 1, j: 13 },       // Top-right
+        { i: 11, j: 1 },       // Bottom-left
+        { i: 11, j: 13 }       // Bottom-right
+    ];
+
+    const posIndex = activeRoom.playerCount;
 
     activeRoom.players[playerId] = {
         id: playerId,
@@ -109,6 +154,8 @@ function addPlayerToRoom(playerId, nickname) {
         bombs: 1,
         flames: 1,
         speed: 1,
+        position: { x: 0, y: 0 },
+        currentCell: positions[posIndex],
     }
 
     activeRoom.playerCount++
@@ -116,7 +163,7 @@ function addPlayerToRoom(playerId, nickname) {
     if (activeRoom.playerCount === 4) {
         startCountdown()
     } else if (activeRoom.playerCount >= 2 && !activeRoom.countdownInterval && activeRoom.state === 'waiting') {
-        let waitTime = 20;
+        let waitTime = 5;
 
         broadcastToAll({
             type: 'countdown',

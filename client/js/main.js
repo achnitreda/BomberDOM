@@ -1,3 +1,4 @@
+import { startGame } from "./game.js";
 import MiniFramework from "./mini-framework.js";
 
 const gameState = {
@@ -6,6 +7,7 @@ const gameState = {
     state: 'login',
     players: {},
     countdown: null,
+    grid: null,
 }
 
 const store = MiniFramework.createStore(gameState)
@@ -186,9 +188,11 @@ function handleServerMessage(data) {
         case 'gameStart':
             store.setState({
                 players: data.players,
-                state: 'playing'
+                state: 'playing',
+                grid: data.map
             });
             showScreen('game');
+            startGame(data.map, data.players, store.getState().playerId)
             break
         case 'chatMessage':
             addChatMessage(data.message, data.sender);
