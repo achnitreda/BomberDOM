@@ -4,16 +4,33 @@ import path from 'path'
 import { WebSocket, WebSocketServer } from 'ws'
 import { v4 as uuidv4 } from 'uuid';
 
-let activeRoom = {
-    playerCount: 0,
-    players: {},
-    state: 'waiting',
-    countdown: null,
-    countdownInterval: null,
-    grid: null,
+// Multiple Rooms Logic
+let gameRooms = {}
+let roomCounter = 1;
+
+function createNewRoom() {
+    const roomId = `room_${roomCounter++}`;
+    gameRooms[roomId] = {
+        id: roomId,
+        playerCount: 0,
+        players: {},
+        state: 'waiting',
+        countdown: null,
+        countdownInterval: null,
+        grid: null,
+    }
+    return roomId
 }
 
-let clients = {}
+function findAvailableRoom() {
+    for (let roomId in gameRooms) {
+        const room = gameRooms[roomId]
+        if (room.state === 'waiting' && room.playerCount < 4) {
+            return roomId
+        }
+    }
+    return null
+}
 
 // Create Http server
 const server = http.createServer((req, res) => {
@@ -60,44 +77,47 @@ const server = http.createServer((req, res) => {
     })
 })
 
+function startCountdown(roomId) {
+    const room = gameRooms[roomId]
 
-function startCountdown() {
-    if (activeRoom.state !== 'waiting') return
+    if (room.state !== 'waiting') return
 
-    activeRoom.state = 'countdown'
-    activeRoom.countdown = 2
+    room.state = 'countdown'
+    room.countdown = 2
 
-    broadcastToAll({
+    broadcastToAll(roomId, {
         type: 'countdown',
-        countdown: activeRoom.countdown,
+        countdown: room.countdown,
         isWaiting: false
     })
 
-    activeRoom.countdownInterval = setInterval(() => {
-        activeRoom.countdown--
+    room.countdownInterval = setInterval(() => {
+        room.countdown--
 
-        if (activeRoom.countdown <= 0) {
-            clearInterval(activeRoom.countdownInterval)
-            startGame()
+        if (room.countdown <= 0) {
+            clearInterval(room.countdownInterval)
+            startGame(roomId)
         } else {
-            broadcastToAll({
+            broadcastToAll(roomId, {
                 type: 'countdown',
-                countdown: activeRoom.countdown,
+                countdown: room.countdown,
                 isWaiting: false
             })
         }
     }, 1000)
 }
 
-function startGame() {
-    activeRoom.state = 'playing'
+function startGame(roomId) {
+    const room = gameRooms[roomId];
+
+    room.state = 'playing'
 
     const map = generateMap()
-    activeRoom.grid = map
+    room.grid = map
 
-    broadcastToAll({
+    broadcastToAll(roomId, {
         type: 'gameStart',
-        players: activeRoom.players,
+        players: room.players,
         map: map
     })
 
@@ -134,8 +154,18 @@ function generateMap() {
     return map
 }
 
-function addPlayerToRoom(playerId, nickname) {
-    if (activeRoom.playerCount >= 4) return false
+function addPlayerToRoom(roomId, playerId, nickname) {
+    const room = gameRooms[roomId];
+
+    if (room.playerCount >= 4) {
+        return { success: false, error: 'room_full' }
+    }
+
+    const isNicknameTaken = Object.values(room.players).some((player) => player.nickname.toLowerCase() === nickname.toLowerCase())
+
+    if (isNicknameTaken) {
+        return { success: false, error: 'nickname_taken' };
+    }
 
     const positions = [
         { i: 1, j: 1 },        // Top-left
@@ -144,9 +174,9 @@ function addPlayerToRoom(playerId, nickname) {
         { i: 11, j: 13 }       // Bottom-right
     ];
 
-    const posIndex = activeRoom.playerCount;
+    const posIndex = room.playerCount;
 
-    activeRoom.players[playerId] = {
+    room.players[playerId] = {
         id: playerId,
         nickname,
         alive: true,
@@ -158,114 +188,126 @@ function addPlayerToRoom(playerId, nickname) {
         currentCell: positions[posIndex],
     }
 
-    activeRoom.playerCount++
+    room.playerCount++
 
-    if (activeRoom.playerCount === 4) {
-        startCountdown()
-    } else if (activeRoom.playerCount >= 2 && !activeRoom.countdownInterval && activeRoom.state === 'waiting') {
+    if (room.playerCount === 4) {
+        startCountdown(roomId)
+    } else if (room.playerCount >= 2 && !room.countdownInterval && room.state === 'waiting') {
         let waitTime = 5;
 
-        broadcastToAll({
+        broadcastToAll(roomId, {
             type: 'countdown',
             countdown: waitTime,
             isWaiting: true
         });
 
-        activeRoom.countdownInterval = setInterval(() => {
+        room.countdownInterval = setInterval(() => {
             waitTime--;
 
-            broadcastToAll({
+            broadcastToAll(roomId, {
                 type: 'countdown',
                 countdown: waitTime,
                 isWaiting: true
             });
 
             if (waitTime <= 0) {
-                clearInterval(activeRoom.countdownInterval);
-                activeRoom.countdownInterval = null;
+                clearInterval(room.countdownInterval);
+                room.countdownInterval = null;
 
-                if (activeRoom.state === 'waiting' && activeRoom.playerCount >= 2) {
-                    startCountdown();
+                if (room.state === 'waiting' && room.playerCount >= 2) {
+                    startCountdown(roomId);
                 }
             }
         }, 1000);
 
     }
-    return true
+    return { success: true }
 }
 
-function removePlayerFromRoom(playerId) {
-    if (!activeRoom.players[playerId]) return false;
+function removePlayerFromRoom(roomId, playerId) {
+    const room = gameRooms[roomId];
 
-    delete activeRoom.players[playerId];
-    activeRoom.playerCount--;
+    if (!room || !room.players[playerId]) return false;
 
-    broadcastToAll({
+    delete room.players[playerId];
+    room.playerCount--;
+
+    broadcastToAll(roomId, {
         type: 'playerLeft',
-        playerId
+        playerId,
     });
 
-    if (activeRoom.playerCount < 2) {
-        if (activeRoom.countdownInterval) {
-            clearInterval(activeRoom.countdownInterval);
-            activeRoom.countdownInterval = null;
+    if (room.playerCount < 2) {
+        if (room.countdownInterval) {
+            clearInterval(room.countdownInterval);
+            room.countdownInterval = null;
         }
 
-        activeRoom.state = 'waiting';
+        room.state = 'waiting';
 
-        broadcastToAll({
+        broadcastToAll(roomId, {
             type: 'countdownCancelled'
         });
     }
 
-    if (activeRoom.playerCount === 0) {
-        resetRoom();
+    if (room.playerCount === 0) {
+        resetRoom(roomId);
     }
 
     return true
 }
 
-function broadcastToOthers(sender, message) {
+function broadcastToOthers(roomId, sender, message) {
     wss.clients.forEach(client => {
-        if (client !== sender && client.readyState === WebSocket.OPEN) {
+        if (client !== sender && client.roomId === roomId && client.readyState === WebSocket.OPEN) {
             client.send(JSON.stringify(message))
         }
     })
 }
 
-function broadcastToAll(message) {
+function broadcastToAll(roomId, message) {
     wss.clients.forEach(client => {
-        if (client.readyState === WebSocket.OPEN) {
+        if (client.roomId === roomId && client.readyState === WebSocket.OPEN) {
             client.send(JSON.stringify(message))
         }
     })
 }
 
-function handleDisconnect(playerId) {
-    removePlayerFromRoom(playerId);
-    delete clients[playerId];
+function handleDisconnect(ws, playerId) {
+
+    const roomId = ws.roomId;
+
+    if (!roomId || !playerId) return;
+
+    removePlayerFromRoom(roomId, playerId);
 }
 
-function resetRoom() {
-    if (activeRoom.countdownInterval) {
-        clearInterval(activeRoom.countdownInterval);
+function resetRoom(roomId) {
+    let room = gameRooms[roomId]
+    if (room.countdownInterval) {
+        clearInterval(room.countdownInterval);
     }
 
-    activeRoom = {
+    room = {
         playerCount: 0,
         players: {},
         state: 'waiting',
         countdown: null,
         countdownInterval: null,
+        grid: null,
     }
 
-    broadcastToAll({
+    broadcastToAll(roomId, {
         type: 'roomReset'
     })
 }
 
-function handleChatMessage(playerId, data) {
-    if (!activeRoom.players[playerId]) return
+function handleChatMessage(ws, playerId, data) {
+    const roomId = ws.roomId;
+
+    const room = gameRooms[roomId]
+
+    if (roomId || !room.players[playerId]) return
 
     if (data.message.length > 100) {
         ws.send(JSON.stringify({
@@ -284,12 +326,48 @@ function handleChatMessage(playerId, data) {
 
     const message = {
         type: 'chatMessage',
-        sender: activeRoom.players[playerId].nickname,
+        sender: room.players[playerId].nickname,
         message: data.message,
         timestamp: Date.now()
     };
 
-    broadcastToAll(message)
+    broadcastToAll(roomId, message)
+}
+
+function handleJoinGame(ws, nickname, playerId) {
+
+    let roomId = findAvailableRoom()
+    if (!roomId) {
+        roomId = createNewRoom();
+    }
+
+    const result = addPlayerToRoom(roomId, playerId, nickname)
+
+    if (result.success) {
+
+        ws.roomId = roomId
+
+        ws.send(JSON.stringify({
+            type: 'joinedRoom',
+            roomId: roomId,
+            players: gameRooms[roomId].players,
+            playerCount: gameRooms[roomId].playerCount,
+
+        }))
+
+        broadcastToOthers(roomId, ws, {
+            type: 'playerJoined',
+            player: gameRooms[roomId].players[playerId]
+        })
+    } else {
+        ws.send(JSON.stringify({
+            type: 'error',
+            error: result.error,
+            message: result.error === 'nickname_taken' ?
+                'This nickname is already taken in this room.' :
+                'Could not join game. Room is full.'
+        }));
+    }
 }
 
 // Setup Websocket server
@@ -299,8 +377,6 @@ wss.on('connection', (ws) => {
     console.log('Client connected')
 
     const playerId = uuidv4()
-
-    clients[playerId] = ws
 
     ws.send(JSON.stringify({
         type: 'playerId',
@@ -313,29 +389,10 @@ wss.on('connection', (ws) => {
 
             switch (data.type) {
                 case 'joinGame':
-                    const added = addPlayerToRoom(playerId, data.nickname)
-
-                    if (added) {
-                        ws.send(JSON.stringify({
-                            type: 'joinedRoom',
-                            players: activeRoom.players,
-                            playerCount: activeRoom.playerCount,
-
-                        }))
-
-                        broadcastToOthers(ws, {
-                            type: 'playerJoined',
-                            player: activeRoom.players[playerId]
-                        })
-                    } else {
-                        ws.send(JSON.stringify({
-                            type: 'error',
-                            message: 'Could not join game. Room is full.'
-                        }))
-                    }
+                    handleJoinGame(ws, data.nickname, playerId)
                     break
                 case 'chatMessage':
-                    handleChatMessage(playerId, data);
+                    handleChatMessage(ws, playerId, data);
                     break;
             }
         } catch (error) {
@@ -344,8 +401,7 @@ wss.on('connection', (ws) => {
     })
 
     ws.on('close', () => {
-        handleDisconnect(playerId)
-        delete clients[playerId]
+        handleDisconnect(ws, playerId)
     });
 })
 

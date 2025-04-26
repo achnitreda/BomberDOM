@@ -205,7 +205,14 @@ function handleServerMessage(data) {
             showScreen('login')
             break
         case 'error':
-            alert(data.message)
+            if (data.error === 'nickname_taken') {
+                alert(data.message)
+
+                document.getElementById('nickname-input').value = '';
+                document.getElementById('nickname-input').focus();
+            } else {
+                alert(data.message)
+            }
             break
     }
 }
