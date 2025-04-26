@@ -164,4 +164,39 @@
   margin-top: 15px;
 }
 
-/* hadir54726@linxues.com */
+.game-view {
+  width: 100%;
+  height: 100%;
+}
+
+.board {
+  display: grid;
+  position: relative;
+  background: #1A1F2C;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.empty {
+  background: rgba(56, 159, 228, 0.712);
+}
+
+.solid {
+  background: linear-gradient(135deg,
+    #222222 0%,
+    #1A1F2C 100%
+  );
+  border: 1px solid gray;
+}
+
+.soft {
+  background: linear-gradient(135deg,
+    #9b87f5 0%,
+    #4b4179 100%
+  );
+}
+.player {
+  position: absolute;
+  background-color: #F97316;
+}

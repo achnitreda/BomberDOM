@@ -1,5 +1,5 @@
 import mf from "./mini-framework.js"
-import { store } from "./game.js";
+import { Render, store } from "./game.js";
 
 function handleNameSub() {
     const name = store.getState().u_name
@@ -23,8 +23,11 @@ function handleNameSub() {
             const data = JSON.parse(msg.data);
             switch (data.type) {
                 case "name taken":
-                    store.setState({ loginError: "this name is taken, choose another one!!!" });
-
+                    store.setState({loginError: "this name is taken, choose another one!!!"}); break;
+                case "view change":
+                    store.setState({room: data.payload.room})
+                    store.setState({view: "game"})
+                    Render();
             }
         }
 
@@ -54,7 +57,7 @@ const bombLogo = () => {
     )
 }
 
-const particls = Array.from({ length: 30 }).map(() => {
+export const particls = Array.from({ length: 30 }).map(() => {
     const size = Math.random() * 10 + 5;
     const color = colors[Math.floor(Math.random() * colors.length)];
     return (
@@ -86,7 +89,7 @@ const loginEL = () => {
     return mf.createElement("div", { class: "login-container" },
         mf.createElement("input", {
             class: "u_name", type: "text", placeHolder: "Enter a nickname... ",
-            value: "", onInput: (e) => store.setState({ u_name: e.target.value })
+            value: store.getState().u_name || '', onInput: (e) => store.setState({ u_name: e.target.value })
         }),
         mf.createElement("div", { style: "color: red;text-align: center" }, store.getState().loginError),
         mf.createElement("div", { class: "sub-bt", onClick: handleNameSub }, "START")
@@ -94,5 +97,5 @@ const loginEL = () => {
 }
 
 export function homePage() {
-    return mf.createElement("div", { class: "home-view" }, ...particls, bombLogo(), header(), loginEL())
+    return mf.createElement("div", { class: "home-view" }, particls, bombLogo(), header(), loginEL())
 } 

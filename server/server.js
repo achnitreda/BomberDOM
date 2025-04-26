@@ -41,11 +41,8 @@ const server = http.createServer((req, res) => {
 const wsServer = new WebSocketServer({server})
 
 wsServer.on("connection", (ws) => {
-    console.log("connected!! =>");
-    
     ws.on("message", (msg) => {
         const data = JSON.parse(msg);
-        
         switch (data.type) {
             case "join":
                 const name = data.u_name.trim()
@@ -64,7 +61,15 @@ wsServer.on("connection", (ws) => {
                 }
                 const player = new Player(name, ws)
                 room.players.push(player)
-                console.log(room.players.length);
+
+                const msgToSend = {
+                    type: "view change",
+                    payload: {
+                        view: "game",
+                        room
+                    }
+                }
+                ws.send(JSON.stringify(msgToSend))
                 
         } 
     })

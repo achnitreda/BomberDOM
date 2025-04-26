@@ -3,22 +3,46 @@ class Room {
         this.id = id
         this.players = []
         this.messages = []
+        this.map = this.generateMap()
         this.status = 'open'
     }
 
     nameExist(u_name) {
         return this.players.some(player => player.nickname == u_name)
     }
+
+    generateMap() {
+        const map = []
+        const width = 15, height = 13
+        const empty = 0, soft = 1, solid = 2
+    
+        for (let i = 0; i < height; i++) {
+            map[i] = []
+            for (let j = 0; j < width; j++) {
+                if (i === 0 || i === height - 1 || j === 0 || j === width - 1) {
+                    map[i][j] = solid
+                } else if (i % 2 === 0 && j % 2 === 0) {
+                    map[i][j] = solid
+                } else if ((i <= 2 && j <= 2) ||  // Top-left
+                    (i <= 2 && j >= width - 3) ||  // Top-right
+                    (i >= height - 3 && j <= 2) ||  // Bottom-left
+                    (i >= height - 3 && j >= width - 3)  // Bottom-right
+                ) {
+                    map[i][j] = empty
+                } else {
+                    map[i][j] = Math.random() < 0.6 ? empty : soft;
+                }
+            }
+        }
+    
+        return map
+    }
 }
 
 export const RoomsManager = {
     rooms: [],
     getAvailbelRooms() {
-        console.log("rooms len =>",this.rooms.length);
-        
         for (const room of this.rooms) {
-            console.log("room =>",room);
-            
             if (room.status === 'open') {
                 return room;
             }
