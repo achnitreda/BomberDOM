@@ -307,7 +307,7 @@ function handleChatMessage(ws, playerId, data) {
 
     const room = gameRooms[roomId]
 
-    if (roomId || !room.players[playerId]) return
+    if (!roomId || !room.players[playerId]) return
 
     if (data.message.length > 100) {
         ws.send(JSON.stringify({
