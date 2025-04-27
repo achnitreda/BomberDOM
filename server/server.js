@@ -4,8 +4,8 @@ import path from "path"
 import { WebSocketServer } from "ws"
 import { RoomsManager, Player } from "./roomsManager.js"
 
-const playerMap = new Map();  // key: ws, value: player
-const roomMap = new Map();    // key: roomId, value: room
+// const playerMap = new Map();  // key: ws, value: player
+// const roomMap = new Map();    // key: roomId, value: room
 
 
 const server = http.createServer((req, res) => {
@@ -45,13 +45,15 @@ const server = http.createServer((req, res) => {
 const wsServer = new WebSocketServer({ server })
 
 wsServer.on("connection", (ws) => {
+    let room
+    let player
     ws.on("message", (msg) => {
         const data = JSON.parse(msg);
         switch (data.type) {
             case "join":
                 const name = data.u_name.trim()
                 if (!name) return
-                const room = RoomsManager.getAvailbelRooms();
+                room = RoomsManager.getAvailbelRooms();
 
                 if (room.nameExist(name)) {
                     const msg = {
@@ -60,11 +62,11 @@ wsServer.on("connection", (ws) => {
                     ws.send(JSON.stringify(msg))
                     return
                 }
-                const player = new Player(name, ws, room.id)
+                player = new Player(name, ws, room.id)
                 room.players.push(player)
 
-                playerMap.set(ws, player)
-                roomMap.set(room.id, room)
+                // playerMap.set(ws, player)
+                // roomMap.set(room.id, room)
 
                 room.broadcast({
                     type: "waiting room update",
@@ -81,13 +83,16 @@ wsServer.on("connection", (ws) => {
                 break;
             case 'chatMessage':
 
-                const p = playerMap.get(ws);
-                const r = roomMap.get(p.roomId);
-                if (!p || !r) return
-                console.log("chatMessage", data);
+                // const p = playerMap.get(ws);
+                // const r = roomMap.get(p.roomId);
+                // if (!p || !r) return
+                // console.log("chatMessage", data);
+
+                // console.log(room, player, data.text);
                 
-                if (r && p && typeof data.text === 'string') {
-                    r.sendChatMessage(p.nickname, data.text.trim());
+                
+                if (room && player && typeof data.text === 'string') {
+                    room.sendChatMessage(player.nickname, data.text.trim());
                 }
                 break;
 

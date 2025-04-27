@@ -23,11 +23,37 @@ function handleNameSub() {
             const data = JSON.parse(msg.data);
             switch (data.type) {
                 case "name taken":
-                    store.setState({loginError: "this name is taken, choose another one!!!"}); break;
-                case "view change":
-                    store.setState({room: data.payload.room})
-                    store.setState({view: "game"})
+                    store.setState({ loginError: "this name is taken, choose another one!!!" }); break;
+                case "waiting room update":
+                    store.setState({
+                        view: "waiting",
+                        players: data.payload.players,
+                        playerCount: data.payload.playerCount,
+                    });
                     Render();
+                    break;
+                case 'countdown':                    
+                    store.setState({ ...store.getState(),countdown: data.countdown, isWaiting :data.isWaiting });
+                    Render();
+                    break;
+
+                case 'start game':
+                    store.setState({ view: 'game' });
+                    store.setState({ room: data.game });
+                    Render();
+                    break;
+                case 'chatMessage':
+
+                    const msg = [...store.getState().messages]
+                    msg.push({
+                        id: Date.now().toString(),
+                        text: data.message.text,
+                        nickname: data.message.nickname,
+                        time: new Date(data.message.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    })
+                    store.setState({ messages: msg })
+                    Render();
+                    break;
             }
         }
 

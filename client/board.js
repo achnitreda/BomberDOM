@@ -1,6 +1,7 @@
 import { store } from "./game.js";
 import mf from "./mini-framework.js";
 import { particls } from "./home.js";
+import { chatMessage } from "./waitingRoom.js";
 
 const MIN_CELL_SIZE = 32;
 const MAX_CELL_SIZE = 64;
@@ -24,7 +25,7 @@ function calcCellSize() {
 
 
 export function GameView() {
-    return mf.createElement("div", {class: "game-view"}, particls, Board())
+    return mf.createElement("div", {class: "game-view"}, particls, Board(),chatMessage())
 }
 
 function Board() {

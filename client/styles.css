@@ -167,13 +167,15 @@
 .game-view {
   width: 100%;
   height: 100%;
+  display: flex;
+  position: relative;
 }
 
 .board {
   display: grid;
   position: relative;
   background: #1A1F2C;
-  position: absolute;
+  /* position: absolute; */
   top: 50%;
   transform: translateY(-50%);
 }
@@ -199,4 +201,106 @@
 .player {
   position: absolute;
   background-color: #F97316;
+}
+
+
+
+
+/*********************************************/
+
+
+.waiting-container {
+  background-color: #4564b3b4;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 90%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin: auto;
+  h2 {
+    text-align: center;
+    color:  #051933;
+  }
+}
+
+#players-list {
+  list-style: none;
+  li {
+    padding: 0.5rem;
+    border-bottom: 1px solid #eee;
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}
+
+.waiting-info {
+  text-align: center;
+}
+
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 250px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  overflow: hidden;
+  h2 {
+    background-color: #051933;
+    color: white;
+    padding: 0.5rem 1rem;
+    margin: 0;
+    font-size: 1rem;
+  }
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem;
+  background-color: #f9f9f9;
+}
+
+.chat-message {
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+  .system {
+    color: #ffa500;
+    font-style: italic;
+  }
+  .sender {
+    font-weight: bold;
+    color:  #051933;
+  }
+  .time {
+    font-size: 0.8rem;
+    color: #777;
+    margin-left: 0.5rem;
+  }
+}
+
+
+.chat-input {
+  display: flex;
+  border-top: 1px solid #eee;
+  input {
+    flex: 1;
+    padding: 0.75rem;
+    border: none;
+    outline: none;
+  }
+  button {
+    background-color:  #051933;
+    color: white;
+    border: none;
+    padding: 0 1rem;
+    cursor: pointer;
+    &:hover {
+      background-color: #788ca5;
+    }
+  }
 }
