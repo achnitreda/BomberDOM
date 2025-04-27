@@ -1,6 +1,7 @@
 import { store } from "./game.js";
 import mf from "./mini-framework.js";
 import { particls } from "./home.js";
+import { Player } from "./player.js";
 
 const MIN_CELL_SIZE = 32;
 const MAX_CELL_SIZE = 64;
@@ -29,17 +30,17 @@ export function GameView() {
 
 function Board() {
     const cellSize = calcCellSize();
-    console.log(cellSize);
+    // console.log(cellSize);
     
     return mf.createElement("div", {
         class: "board",
         style: `grid-template-rows: repeat(13, ${cellSize}px); grid-template-columns: repeat(15, ${cellSize}px);`
-    }, cells(cellSize), players(cellSize))
+    }, cells(), players(cellSize))
 }
 
 
 
-function cells(size) {
+function cells() {
     const cells = []
     store.getState().room.map.forEach((row) => {
         row.forEach((val) => {
@@ -56,10 +57,47 @@ function players(cellSize) {
     const players = []
     const initPos = [[1,1], [11,13], [1, 13], [11, 1]]
     store.getState().room.players.forEach((player, i) => {
+        
+        const x  = cellSize * initPos[i][1];
+        const y = cellSize * initPos[i][0];
+        
+        const playerx = new Player(x, y, size, store.getState().ws, store.getState().room.id, player.nickname);
+        if(player.nickname == store.getState().u_name) {
+            setUpKeysEvents(playerx)
+        }
+        
         players.push(mf.createElement("div", {
             class: "player",
-            style: `width: ${size}px; height: ${size}px; transform: translate(${cellSize * initPos[i][1]}px, ${cellSize * initPos[i][0]}px);`
+            style: `width: ${size}px; height: ${size}px; transform: translate(${x}px, ${y}px);`,
+            ref: (el) => {
+                playerx.elment = el
+            }
         }))
+        
+        store.getState().players.push(playerx);
+
     })
     return players
+}
+
+function setUpKeysEvents(player) {
+    addEventListener("keydown", (e) => {
+        handleMovements(player,e.key)
+    })
+}
+
+function handleMovements(player, direction) {
+    switch (direction) {
+        case "ArrowRight":
+            player.moveRight();
+            break;
+        case "ArrowLeft":
+            player.moveLeft();
+            break;
+        case "ArrowUp":
+            player.moveUp();
+            break;
+        case "ArrowDown":
+            player.moveDown();   
+    }
 }

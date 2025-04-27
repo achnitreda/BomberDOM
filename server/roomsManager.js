@@ -63,6 +63,28 @@ export const RoomsManager = {
                 this.rooms.splice(index, 1);
             }
         }
+    },
+
+    broadcastMsg(msg) {
+        // console.log("prodcast");
+        
+        
+        this.rooms.forEach(room => {
+            // console.log(room.id);
+            
+            if (room.id === msg.room_id) {
+                room.players.forEach(player => {
+                    console.log(player.nickname);
+                    
+                    if (player.nickname !== msg.name) {
+                        console.log("msg sent");
+                        
+                        msg = JSON.stringify(msg)
+                        player.ws.send(msg)
+                    }
+                })
+            }
+        })
     }
 }
 

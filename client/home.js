@@ -11,7 +11,7 @@ function handleNameSub() {
         store.setState({ ws })
 
         ws.onopen = () => {
-            console.log("ws connected front!!!!");
+            store.getState().ws = ws
             const msg = {
                 type: "join",
                 u_name: name
@@ -21,6 +21,8 @@ function handleNameSub() {
 
         ws.onmessage = (msg) => {
             const data = JSON.parse(msg.data);
+            console.log(data.type);
+            
             switch (data.type) {
                 case "name taken":
                     store.setState({loginError: "this name is taken, choose another one!!!"}); break;
@@ -28,6 +30,21 @@ function handleNameSub() {
                     store.setState({room: data.payload.room})
                     store.setState({view: "game"})
                     Render();
+                    break;
+                case "position":
+                    // console.log(data);
+                    console.log(store.getState().players);
+                    // console.log("curent player name =>>>", store.getState().u_name);
+                    
+                    store.getState().players.forEach(el => {
+                        // console.log(el);
+                        
+                        if(el.name === data.name) {
+                            el.position.x += data.position.x
+                            el.position.y += data.position.y
+                        }
+                    });
+                
             }
         }
 

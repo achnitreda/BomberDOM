@@ -70,6 +70,10 @@ wsServer.on("connection", (ws) => {
                     }
                 }
                 ws.send(JSON.stringify(msgToSend))
+                break;
+            case "position":
+                RoomsManager.broadcastMsg(data)
+                
                 
         } 
     })
