@@ -5,8 +5,8 @@ class Room {
         this.messages = []
         this.map = this.generateMap()
         this.status = 'open'
-        this.countdown= null
-        this.countdownInterval= null
+        this.countdown = null
+        this.countdownInterval = null
     }
 
     nameExist(u_name) {
@@ -17,7 +17,7 @@ class Room {
         const map = []
         const width = 15, height = 13
         const empty = 0, soft = 1, solid = 2
-    
+
         for (let i = 0; i < height; i++) {
             map[i] = []
             for (let j = 0; j < width; j++) {
@@ -36,14 +36,14 @@ class Room {
                 }
             }
         }
-    
+
         return map
     }
 
     startWaitingCountdown() {
         if (this.countdownInterval) return;
 
-        this.countdown = 20;
+        this.countdown = 7;
 
         this.broadcast({
             type: 'countdown',
@@ -58,7 +58,7 @@ class Room {
                 this.countdown = 10;
             }
 
-            if (this.countdown <= 10) {
+            if (this.countdown <= 3) {
                 this.status = 'countdown';
             }
 
@@ -78,7 +78,7 @@ class Room {
 
     startGame() {
         this.status = 'playing';
-        this.broadcast({ type: 'start game' , game : this});
+        this.broadcast({ type: 'start game', game: this });
     }
 
     broadcast(msg) {
@@ -89,7 +89,7 @@ class Room {
 
     broadcastToOthers(msg, sender) {
         for (const player of this.players) {
-            if (player !== sender ) {
+            if (player !== sender) {
                 client.send(JSON.stringify(msg))
             }
         }
@@ -101,16 +101,16 @@ class Room {
             text: text,
             time: Date.now()
         };
-        console.log(message);
-        
+        // console.log(message);
+
         this.messages.push(message);
-    
+
         this.broadcast({
             type: 'chatMessage',
             message: message,
         });
     }
-    
+
 }
 
 export const RoomsManager = {
@@ -137,6 +137,25 @@ export const RoomsManager = {
                 this.rooms.splice(index, 1);
             }
         }
+    },
+
+    broadcastMsg(msg) {
+        // console.log("prodcast");
+        this.rooms.forEach(room => {
+            // console.log(room.id);
+            if (room.id === msg.room_id) {
+                room.players.forEach(player => {
+                    // console.log(player.nickname);
+
+                    if (player.nickname !== msg.name) {
+                        // console.log("msg sent");
+
+                        msg = JSON.stringify(msg)
+                        player.ws.send(msg)
+                    }
+                })
+            }
+        })
     }
 }
 

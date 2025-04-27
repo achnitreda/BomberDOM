@@ -71,7 +71,7 @@ wsServer.on("connection", (ws) => {
                 room.broadcast({
                     type: "waiting room update",
                     payload: {
-                        players: room.players.map(p => p.nickname),
+                        playersNames: room.players.map(p => p.nickname),
                         playerCount: room.players.length
                     }
                 })
@@ -89,12 +89,14 @@ wsServer.on("connection", (ws) => {
                 // console.log("chatMessage", data);
 
                 // console.log(room, player, data.text);
-                
-                
+
+
                 if (room && player && typeof data.text === 'string') {
                     room.sendChatMessage(player.nickname, data.text.trim());
                 }
                 break;
+            case "position":
+                RoomsManager.broadcastMsg(data)
 
         }
     })

@@ -11,6 +11,7 @@ function handleNameSub() {
         store.setState({ ws })
 
         ws.onopen = () => {
+            store.getState().ws = ws
             console.log("ws connected front!!!!");
             const msg = {
                 type: "join",
@@ -25,15 +26,16 @@ function handleNameSub() {
                 case "name taken":
                     store.setState({ loginError: "this name is taken, choose another one!!!" }); break;
                 case "waiting room update":
+                    
                     store.setState({
                         view: "waiting",
-                        players: data.payload.players,
+                        playersNames: data.payload.playersNames,
                         playerCount: data.payload.playerCount,
                     });
                     Render();
                     break;
-                case 'countdown':                    
-                    store.setState({ ...store.getState(),countdown: data.countdown, isWaiting :data.isWaiting });
+                case 'countdown':
+                    store.setState({ countdown: data.countdown, isWaiting: data.isWaiting });
                     Render();
                     break;
 
@@ -54,6 +56,19 @@ function handleNameSub() {
                     store.setState({ messages: msg })
                     Render();
                     break;
+                case "position":
+                    // console.log(data);
+                    // console.log("curent player name =>>>", store.getState().u_name);
+                    console.log(store.getState());
+                    
+                    store.getState().players.forEach(el => {
+                        // console.log(el);
+
+                        if (el.name === data.name) {
+                            el.position.x += data.position.x
+                            el.position.y += data.position.y
+                        }
+                    });
             }
         }
 

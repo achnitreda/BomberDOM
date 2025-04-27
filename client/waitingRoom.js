@@ -11,7 +11,6 @@ export function chatMessage() {
 
         const input = document.getElementById('inputId');
         const message = input.value.trim();
-        console.log(message);
 
         if (message.trim() === "") return;
 
@@ -49,14 +48,14 @@ export function chatMessage() {
 
 
 export function WaitingRoom() {
-    const { playerCount, players, countdown, isWaiting } = store.getState();
+    const { playerCount, playersNames, countdown, isWaiting } = store.getState();
     
     return mf.createElement("div", { class: "home-view" }, particls,
         mf.createElement("div", { class: "waiting-container" },
             mf.createElement("h2", {}, "Waiting for players..."),
             mf.createElement("p", {}, `Players connected: ${playerCount}/4`),
             mf.createElement("ul", { id: "players-list" },
-                players.map(name =>
+                playersNames.map(name =>
                     mf.createElement("li", {}, name)
                 )
             ),
