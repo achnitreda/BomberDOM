@@ -5,6 +5,8 @@ class Room {
         this.messages = []
         this.map = this.generateMap()
         this.status = 'open'
+        this.countdown= null
+        this.countdownInterval= null
     }
 
     nameExist(u_name) {
@@ -37,13 +39,85 @@ class Room {
     
         return map
     }
+
+    startWaitingCountdown() {
+        if (this.countdownInterval) return;
+
+        this.countdown = 20;
+
+        this.broadcast({
+            type: 'countdown',
+            countdown: this.countdown,
+            isWaiting: true
+        });
+
+        this.countdownInterval = setInterval(() => {
+            this.countdown--;
+
+            if (this.players.length === 4 && this.countdown > 10) {
+                this.countdown = 10;
+            }
+
+            if (this.countdown <= 10) {
+                this.status = 'countdown';
+            }
+
+            if (this.countdown <= 0) {
+                clearInterval(this.countdownInterval);
+                this.countdownInterval = null;
+                this.startGame();
+            } else {
+                this.broadcast({
+                    type: 'countdown',
+                    countdown: this.countdown,
+                    isWaiting: (this.countdown > 10)
+                });
+            }
+        }, 1000);
+    }
+
+    startGame() {
+        this.status = 'playing';
+        this.broadcast({ type: 'start game' , game : this});
+    }
+
+    broadcast(msg) {
+        for (const player of this.players) {
+            player.ws.send(JSON.stringify(msg));
+        }
+    }
+
+    broadcastToOthers(msg, sender) {
+        for (const player of this.players) {
+            if (player !== sender ) {
+                client.send(JSON.stringify(msg))
+            }
+        }
+    }
+
+    sendChatMessage(nickname, text) {
+        const message = {
+            nickname,
+            text: text,
+            time: Date.now()
+        };
+        console.log(message);
+        
+        this.messages.push(message);
+    
+        this.broadcast({
+            type: 'chatMessage',
+            message: message,
+        });
+    }
+    
 }
 
 export const RoomsManager = {
     rooms: [],
     getAvailbelRooms() {
         for (const room of this.rooms) {
-            if (room.status === 'open') {
+            if (room.status === 'open' && room.players.length < 4) {
                 return room;
             }
         }
@@ -74,7 +148,8 @@ function generateRoomId() {
 }
 
 export class Player {
-    constructor(u_name, ws) {
+    constructor(u_name, ws, roomId) {
+        this.roomId = roomId
         this.nickname = u_name
         this.ws = ws
     }

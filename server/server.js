@@ -1,8 +1,12 @@
-import http  from "http"
-import fs  from "fs"
-import path  from "path"
+import http from "http"
+import fs from "fs"
+import path from "path"
 import { WebSocketServer } from "ws"
 import { RoomsManager, Player } from "./roomsManager.js"
+
+const playerMap = new Map();  // key: ws, value: player
+const roomMap = new Map();    // key: roomId, value: room
+
 
 const server = http.createServer((req, res) => {
     let filePath = `../client${req.url}`
@@ -19,7 +23,7 @@ const server = http.createServer((req, res) => {
         case '.css': contentType = 'text/css'; break;
         case '.json': contentType = 'application/json'; break;
         case '.png': contentType = 'image/png'; break;
-        case '.jpg': contentType = 'image/jpg';  break;
+        case '.jpg': contentType = 'image/jpg'; break;
     }
 
     fs.readFile(filePath, (error, content) => {
@@ -38,7 +42,7 @@ const server = http.createServer((req, res) => {
     })
 })
 
-const wsServer = new WebSocketServer({server})
+const wsServer = new WebSocketServer({ server })
 
 wsServer.on("connection", (ws) => {
     ws.on("message", (msg) => {
@@ -48,30 +52,46 @@ wsServer.on("connection", (ws) => {
                 const name = data.u_name.trim()
                 if (!name) return
                 const room = RoomsManager.getAvailbelRooms();
-                console.log(room.id);
-                
+
                 if (room.nameExist(name)) {
-                    console.log("eeeeeeeee");
-                    
                     const msg = {
                         type: "name taken"
                     }
                     ws.send(JSON.stringify(msg))
                     return
                 }
-                const player = new Player(name, ws)
+                const player = new Player(name, ws, room.id)
                 room.players.push(player)
 
-                const msgToSend = {
-                    type: "view change",
+                playerMap.set(ws, player)
+                roomMap.set(room.id, room)
+
+                room.broadcast({
+                    type: "waiting room update",
                     payload: {
-                        view: "game",
-                        room
+                        players: room.players.map(p => p.nickname),
+                        playerCount: room.players.length
                     }
+                })
+
+                if (room.players.length >= 2 && room.status === "open") {
+                    room.startWaitingCountdown();
                 }
-                ws.send(JSON.stringify(msgToSend))
+
+                break;
+            case 'chatMessage':
+
+                const p = playerMap.get(ws);
+                const r = roomMap.get(p.roomId);
+                if (!p || !r) return
+                console.log("chatMessage", data);
                 
-        } 
+                if (r && p && typeof data.text === 'string') {
+                    r.sendChatMessage(p.nickname, data.text.trim());
+                }
+                break;
+
+        }
     })
 
     ws.on("close", () => {
