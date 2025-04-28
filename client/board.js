@@ -26,13 +26,13 @@ function calcCellSize() {
 
 
 export function GameView() {
-    return mf.createElement("div", {class: "game-view"}, particls, Board(),chatMessage())
+    return mf.createElement("div", { class: "game-view" }, particls, Board(), chatMessage())
 }
 
 function Board() {
     const cellSize = calcCellSize();
     console.log(cellSize);
-    
+
     return mf.createElement("div", {
         class: "board",
         style: `grid-template-rows: repeat(13, ${cellSize}px); grid-template-columns: repeat(15, ${cellSize}px);`
@@ -54,19 +54,22 @@ function cells(size) {
 }
 
 function players(cellSize) {
-    const size = Math.trunc(cellSize*0.8)
+    const size = Math.trunc(cellSize)
     const players = []
-    const initPos = [[1,1], [11,13], [1, 13], [11, 1]]
+    const initPos = [[1, 1], [11, 13], [1, 13], [11, 1]]
+    // console.log(store.getState().speed, "spped => ", cellSize*3*0.016); // 3 = x * 3 *0.016// x = 3 / 3*0.016// 40, speed ,
+
+    store.setState({ speed: cellSize * 0.048 })
+    // console.log(store.getState().speed);
     store.getState().room.players.forEach((player, i) => {
-        
-        const x  = cellSize * initPos[i][1];
+
+        const x = cellSize * initPos[i][1];
         const y = cellSize * initPos[i][0];
-        
-        const playerx = new Player(x, y, size, store.getState().ws, store.getState().room.id, player.nickname);
-        if(player.nickname == store.getState().u_name) {
+        const playerx = new Player(x, y, size, store.getState().room.id, player.nickname);
+        if (player.nickname == store.getState().u_name) {
             setUpKeysEvents(playerx)
         }
-        
+
         players.push(mf.createElement("div", {
             class: "player",
             style: `width: ${size}px; height: ${size}px; transform: translate(${x}px, ${y}px);`,
@@ -74,7 +77,7 @@ function players(cellSize) {
                 playerx.elment = el
             }
         }))
-        
+
         store.getState().players.push(playerx);
 
     })
@@ -82,8 +85,27 @@ function players(cellSize) {
 }
 
 function setUpKeysEvents(player) {
+    const keys = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"]
     addEventListener("keydown", (e) => {
-        handleMovements(player,e.key)
+
+        // player._sendPosition(e.key, "move");
+        // player[e.key]()
+        if (keys.includes(e.key) && !player.moveKeys.includes(e.key)) {
+            player[e.key]()
+            player._sendPosition(e.key, "move")
+            player.moveKeys.unshift(e.key)
+        }   
+    })
+
+    addEventListener("keyup", (e) => {
+        const keyIdx = player.moveKeys.indexOf(e.key)
+        
+        // if (keys.includes(e.key) && player.moveKeys.includes(e.key)) {
+            if (keyIdx != -1) {
+                player._sendPosition(e.key, "stop")
+                player.moveKeys.splice(keyIdx, 1)
+            }
+        // }
     })
 }
 
@@ -99,6 +121,6 @@ function handleMovements(player, direction) {
             player.moveUp();
             break;
         case "ArrowDown":
-            player.moveDown();   
+            player.moveDown();
     }
 }

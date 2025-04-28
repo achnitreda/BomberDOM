@@ -95,7 +95,7 @@ wsServer.on("connection", (ws) => {
                     room.sendChatMessage(player.nickname, data.text.trim());
                 }
                 break;
-            case "position":
+            case "movement":
                 RoomsManager.broadcastMsg(data)
 
         }

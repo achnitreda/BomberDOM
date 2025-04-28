@@ -22,6 +22,8 @@ function handleNameSub() {
 
         ws.onmessage = (msg) => {
             const data = JSON.parse(msg.data);
+            // console.log(data);
+            
             switch (data.type) {
                 case "name taken":
                     store.setState({ loginError: "this name is taken, choose another one!!!" }); break;
@@ -56,17 +58,34 @@ function handleNameSub() {
                     store.setState({ messages: msg })
                     Render();
                     break;
-                case "position":
-                    // console.log(data);
-                    // console.log("curent player name =>>>", store.getState().u_name);
-                    console.log(store.getState());
+                case "movement":
+                    // console.log("ll");
                     
-                    store.getState().players.forEach(el => {
-                        // console.log(el);
+                    store.getState().players.forEach(player => {
+                        // console.log(data.name);
 
-                        if (el.name === data.name) {
-                            el.position.x += data.position.x
-                            el.position.y += data.position.y
+                        if (player.name === data.name) {
+                            if(data.event == "move" ){
+                                // console.log("77");
+                                // console.log(player.position.x, player.position.y);
+                                
+                                player.position.x = data.amount[0] * (player.size);
+                                player.position.y = data.amount[1] * (player.size);
+
+                                // console.log(player.position.x, player.position.y);
+                                // player[data.dir](, data.amount[1]*(player.size/0.8))
+                                if (!player.moveKeys.includes(data.dir)) {
+                                    player.moveKeys.unshift(data.dir)
+                                }
+                            } else {
+                                const keyIdx = player.moveKeys.indexOf(data.dir)
+                                // console.log(player.moveKeys);
+                                
+                                if (keyIdx != -1) {
+                                    player.moveKeys.splice(keyIdx, 1)
+                               }
+                            //    console.log(player.moveKeys);
+                            }
                         }
                     });
             }

@@ -2,7 +2,7 @@ import mf from "./mini-framework.js"
 
 let unsubscribe
 const app = document.getElementById("app")
-export const store = mf.createStore({ view: "login", messages: [], players: [], ws: null })
+export const store = mf.createStore({ view: "login", messages: [], players: [], ws: null, speed: 0 })
 
 export async function Render() {
     let component = null
@@ -35,11 +35,13 @@ Render()
 
 function gameloop() {
 
-    store.getState().players.forEach(el => {
-        
-        el.renderMovement()
+    store.getState().players.forEach(player => {
+        if (player.moveKeys.length) {
+            player[player.moveKeys[0]]()
+           // player._sendPosition(player.moveKeys[0], "move")
+            player.renderMovement()
+        }
     });
-    // console.log("x");
 
     requestAnimationFrame(gameloop)
 }

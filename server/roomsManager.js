@@ -140,18 +140,19 @@ export const RoomsManager = {
     },
 
     broadcastMsg(msg) {
-        // console.log("prodcast");
+       const msgx = JSON.stringify(msg)
         this.rooms.forEach(room => {
             // console.log(room.id);
             if (room.id === msg.room_id) {
+                // console.log(this.room.players);
                 room.players.forEach(player => {
                     // console.log(player.nickname);
 
                     if (player.nickname !== msg.name) {
                         // console.log("msg sent");
 
-                        msg = JSON.stringify(msg)
-                        player.ws.send(msg)
+                        
+                        player.ws.send(msgx)
                     }
                 })
             }
