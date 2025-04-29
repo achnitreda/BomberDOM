@@ -36,16 +36,17 @@ function Board() {
     return mf.createElement("div", {
         class: "board",
         style: `grid-template-rows: repeat(13, ${cellSize}px); grid-template-columns: repeat(15, ${cellSize}px);`
-    }, cells(), players(cellSize))
+    }, Cells(), players(cellSize))
 }
 
 
 
-function cells(size) {
+function Cells() {
     const cells = []
-    store.getState().room.map.forEach((row) => {
-        row.forEach((val) => {
+    store.getState().room.map.forEach((row, i) => {
+        row.forEach((val, j) => {
             cells.push(mf.createElement("div", {
+                id: `${i}#${j}`,
                 class: val == 2 ? "solid" : val == 1 ? "soft" : "empty",
             }, ""))
         })
@@ -62,19 +63,22 @@ function players(cellSize) {
     store.setState({ speed: cellSize * 0.048 })
     // console.log(store.getState().speed);
     store.getState().room.players.forEach((player, i) => {
-
+        // console.log(player.avatar);
+        
         const x = cellSize * initPos[i][1];
         const y = cellSize * initPos[i][0];
-        const playerx = new Player(x, y, size, store.getState().room.id, player.nickname);
+        const playerx = new Player(x, y, size, store.getState().room.id, player.nickname, player.avatar);
         if (player.nickname == store.getState().u_name) {
             setUpKeysEvents(playerx)
         }
-
+        // console.log(playerx.avatar);
+        
         players.push(mf.createElement("div", {
             class: "player",
             style: `width: ${size}px; height: ${size}px; transform: translate(${x}px, ${y}px);`,
             ref: (el) => {
-                playerx.elment = el
+                playerx.element = el
+                playerx.bgResize()
             }
         }))
 
@@ -87,9 +91,10 @@ function players(cellSize) {
 function setUpKeysEvents(player) {
     const keys = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"]
     addEventListener("keydown", (e) => {
+        if(e.key === "z"){
+            player.createBomb()
+        }
 
-        // player._sendPosition(e.key, "move");
-        // player[e.key]()
         if (keys.includes(e.key) && !player.moveKeys.includes(e.key)) {
             player[e.key]()
             player._sendPosition(e.key, "move")
@@ -99,13 +104,10 @@ function setUpKeysEvents(player) {
 
     addEventListener("keyup", (e) => {
         const keyIdx = player.moveKeys.indexOf(e.key)
-        
-        // if (keys.includes(e.key) && player.moveKeys.includes(e.key)) {
             if (keyIdx != -1) {
                 player._sendPosition(e.key, "stop")
                 player.moveKeys.splice(keyIdx, 1)
             }
-        // }
     })
 }
 

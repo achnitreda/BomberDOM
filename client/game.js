@@ -33,14 +33,20 @@ export async function Render() {
 Render()
 
 
-function gameloop() {
+function gameloop(time) {
 
     store.getState().players.forEach(player => {
         if (player.moveKeys.length) {
-            player[player.moveKeys[0]]()
-           // player._sendPosition(player.moveKeys[0], "move")
-            player.renderMovement()
+            player[player.moveKeys[0]]();
+            player.renderMovement();
+            player.moveAnimate(time, player.moveKeys[0]);
+            
         }
+
+        player.bombs.forEach(bomb => {
+            bomb.animate(time);
+            bomb.explod(time)
+        })
     });
 
     requestAnimationFrame(gameloop)

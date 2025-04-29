@@ -4,8 +4,6 @@ import path from "path"
 import { WebSocketServer } from "ws"
 import { RoomsManager, Player } from "./roomsManager.js"
 
-// const playerMap = new Map();  // key: ws, value: player
-// const roomMap = new Map();    // key: roomId, value: room
 
 
 const server = http.createServer((req, res) => {
@@ -62,12 +60,9 @@ wsServer.on("connection", (ws) => {
                     ws.send(JSON.stringify(msg))
                     return
                 }
-                player = new Player(name, ws, room.id)
+                const avatar = room.pickAvatar()
+                player = new Player(name, ws, room.id, avatar)
                 room.players.push(player)
-
-                // playerMap.set(ws, player)
-                // roomMap.set(room.id, room)
-
                 room.broadcast({
                     type: "waiting room update",
                     payload: {
@@ -82,15 +77,6 @@ wsServer.on("connection", (ws) => {
 
                 break;
             case 'chatMessage':
-
-                // const p = playerMap.get(ws);
-                // const r = roomMap.get(p.roomId);
-                // if (!p || !r) return
-                // console.log("chatMessage", data);
-
-                // console.log(room, player, data.text);
-
-
                 if (room && player && typeof data.text === 'string') {
                     room.sendChatMessage(player.nickname, data.text.trim());
                 }
@@ -105,6 +91,8 @@ wsServer.on("connection", (ws) => {
         console.log("connection closed!!!!!!");
     })
 })
+
+
 
 server.listen(3000, "", () => {
     console.log("server started at http://localhost:3000");

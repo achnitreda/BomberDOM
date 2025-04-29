@@ -7,10 +7,31 @@ class Room {
         this.status = 'open'
         this.countdown = null
         this.countdownInterval = null
+        this.avatars = {
+            death_scythe: false,
+            jedi: false,
+            jedi2: false,
+            killer: false,
+            sadako: false,
+            sith: false
+        };
     }
 
     nameExist(u_name) {
         return this.players.some(player => player.nickname == u_name)
+    }
+
+    pickAvatar() {
+        while (1) {
+            const i = Math.trunc(Math.random() * 6);
+            
+            const av = Object.keys(this.avatars)[i];
+            console.log(i, av);
+            if (!this.avatars[av]) {
+                this.avatars[av] = true;
+                return av;
+            }
+        }
     }
 
     generateMap() {
@@ -142,16 +163,9 @@ export const RoomsManager = {
     broadcastMsg(msg) {
        const msgx = JSON.stringify(msg)
         this.rooms.forEach(room => {
-            // console.log(room.id);
             if (room.id === msg.room_id) {
-                // console.log(this.room.players);
                 room.players.forEach(player => {
-                    // console.log(player.nickname);
-
                     if (player.nickname !== msg.name) {
-                        // console.log("msg sent");
-
-                        
                         player.ws.send(msgx)
                     }
                 })
@@ -168,9 +182,10 @@ function generateRoomId() {
 }
 
 export class Player {
-    constructor(u_name, ws, roomId) {
+    constructor(u_name, ws, roomId, avatar) {
         this.roomId = roomId
         this.nickname = u_name
         this.ws = ws
+        this.avatar = avatar
     }
 }
