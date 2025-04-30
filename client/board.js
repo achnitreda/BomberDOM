@@ -26,12 +26,12 @@ function calcCellSize() {
 
 
 export function GameView() {
-    return mf.createElement("div", { class: "game-view" }, particls, Board(), chatMessage())
+    return mf.createElement("div", { class: "game-view" }, Board(), chatMessage())
 }
 
 function Board() {
     const cellSize = calcCellSize();
-    console.log(cellSize);
+    // console.log(cellSize);
 
     return mf.createElement("div", {
         class: "board",
@@ -60,18 +60,18 @@ function players(cellSize) {
     const initPos = [[1, 1], [11, 13], [1, 13], [11, 1]]
     // console.log(store.getState().speed, "spped => ", cellSize*3*0.016); // 3 = x * 3 *0.016// x = 3 / 3*0.016// 40, speed ,
 
-    store.setState({ speed: cellSize * 0.048 })
-    // console.log(store.getState().speed);
+    store.getState().speed.v = cellSize * 0.048
+    console.log("init speed --> ",store.getState().speed);
     store.getState().room.players.forEach((player, i) => {
-        // console.log(player.avatar);
-        
+
         const x = cellSize * initPos[i][1];
         const y = cellSize * initPos[i][0];
         const playerx = new Player(x, y, size, store.getState().room.id, player.nickname, player.avatar);
         if (player.nickname == store.getState().u_name) {
+            // playerx.speed = cellSize * 0.048;
+            // console.log("init speed --> ",playerx.speed);
             setUpKeysEvents(playerx)
         }
-        // console.log(playerx.avatar);
         
         players.push(mf.createElement("div", {
             class: "player",
@@ -82,6 +82,7 @@ function players(cellSize) {
             }
         }))
 
+        // console.log("init for plys", playerx.speed,"-->", playerx.name);
         store.getState().players.push(playerx);
 
     })
@@ -93,6 +94,7 @@ function setUpKeysEvents(player) {
     addEventListener("keydown", (e) => {
         if(e.key === "z"){
             player.createBomb()
+            store.getState().ws.send(JSON.stringify({type:"bomb", name:player.name, room_id: store.getState().room.id}))
         }
 
         if (keys.includes(e.key) && !player.moveKeys.includes(e.key)) {

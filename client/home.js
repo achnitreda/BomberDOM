@@ -62,32 +62,29 @@ function handleNameSub() {
                     // console.log("ll");
                     
                     store.getState().players.forEach(player => {
-                        // console.log(data.name);
-
                         if (player.name === data.name) {
                             if(data.event == "move" ){
-                                // console.log("77");
-                                // console.log(player.position.x, player.position.y);
-                                
-                                player.position.x = data.amount[0] * (player.size);
-                                player.position.y = data.amount[1] * (player.size);
-
-                                // console.log(player.position.x, player.position.y);
-                                // player[data.dir](, data.amount[1]*(player.size/0.8))
+                                // player.position.x = data.amount[0] * (player.size);
+                                // player.position.y = data.amount[1] * (player.size);
                                 if (!player.moveKeys.includes(data.dir)) {
                                     player.moveKeys.unshift(data.dir)
                                 }
                             } else {
                                 const keyIdx = player.moveKeys.indexOf(data.dir)
-                                // console.log(player.moveKeys);
-                                
                                 if (keyIdx != -1) {
                                     player.moveKeys.splice(keyIdx, 1)
                                }
-                            //    console.log(player.moveKeys);
                             }
                         }
                     });
+                    break;
+                case "bomb":
+                    store.getState().players.forEach(player => {
+                        if (player.name === data.name) {
+                            player.createBomb()
+                        }
+                    })
+                    break;
             }
         }
 

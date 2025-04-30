@@ -1,9 +1,12 @@
+const PowerUps = ["speed", "heart", "range", "amount"]
+
 class Room {
     constructor(id) {
         this.id = id
         this.players = []
         this.messages = []
-        this.map = this.generateMap()
+        this.powerUps = {}
+        this.map = this.generateMap(this.powerUps)
         this.status = 'open'
         this.countdown = null
         this.countdownInterval = null
@@ -14,7 +17,8 @@ class Room {
             killer: false,
             sadako: false,
             sith: false
-        };
+        }
+        console.log(this.powerUps);
     }
 
     nameExist(u_name) {
@@ -34,7 +38,7 @@ class Room {
         }
     }
 
-    generateMap() {
+    generateMap(powerUps) {
         const map = []
         const width = 15, height = 13
         const empty = 0, soft = 1, solid = 2
@@ -53,11 +57,19 @@ class Room {
                 ) {
                     map[i][j] = empty
                 } else {
-                    map[i][j] = Math.random() < 0.6 ? empty : soft;
+                    const type = Math.random() < 0.6 ? empty : soft;
+                    map[i][j] = type;
+                    let classN = "";
+                    if (type == soft) {
+                        if(Math.random() > .6) classN = PowerUps[Math.trunc(Math.random()*4)]
+                    }
+                    console.log(classN);
+                    
+                    if (classN) powerUps[`_${i}_${j}`] = classN
                 }
             }
         }
-
+        
         return map
     }
 

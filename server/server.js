@@ -82,6 +82,9 @@ wsServer.on("connection", (ws) => {
                 }
                 break;
             case "movement":
+                RoomsManager.broadcastMsg(data);
+                break;
+            case "bomb":
                 RoomsManager.broadcastMsg(data)
 
         }

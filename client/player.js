@@ -3,7 +3,13 @@ import { Bomb } from "./bomb.js"
 export class Player {
     constructor(x, y, size, roomId, name, avatar) {
         this.element = null
-
+        this.lifes = 3
+        this.revive = false
+        this.alive = true
+        this.initPos = {
+            x: x,
+            y: y
+        }
         this.position = {
             x: x,
             y: y
@@ -27,23 +33,32 @@ export class Player {
             }
 
         }
+        this.deathSprite = {
+            lastUpdate: 0,
+            animationSpeed: 80,
+        }
+
         this.bombsCount = 1
         this.bombs = []
         this.bombRange = 1
+    }
 
-
-
+    deathAnimation(currentTime) {
+        if (currentTime - this.deathSprite.lastUpdate > this.deathSprite.animationSpeed) {
+            this.deathSprite.lastUpdate = currentTime;
+            this.element.classList.toggle('opacity0');
+        }
     }
 
     createBomb() {
-        if (this.bombs.length < this.bombsCount) {
-            const i = Math.trunc((this.position.y + (this.size *0.5))/this.size)
-            const j = Math.trunc((this.position.x + (this.size *0.5))/this.size)
-            const div = document.getElementById(`${i}#${j}`) 
-            const b = new Bomb(i, j, this.size, div, this)
+        if (this.bombs.length < this.bombsCount && this.alive) {
+            const i = Math.trunc((this.position.y + (this.size * 0.5)) / this.size)
+            const j = Math.trunc((this.position.x + (this.size * 0.5)) / this.size)
+            const b = new Bomb(i, j, this.size, this)
             this.bombs.push(b)
-            div.style.backgroundSize = `${5 * this.size}px, ${this.size}px`;
-            div.classList.add("bomb");
+            setTimeout(() => {
+                b.explod()
+            }, 3000)
         }
     }
 
@@ -54,62 +69,87 @@ export class Player {
 
     ArrowRight() {
         const newR = Math.trunc((this.position.y + (0.5 * this.size)) / this.size) * this.size
-        if ((Math.abs(newR - this.position.y)) > store.getState().speed) {
-            this.position.y += newR > this.position.y ? store.getState().speed : -store.getState().speed;
+        if ((Math.abs(newR - this.position.y)) > store.getState().speed.v) {
+            this.position.y += newR > this.position.y ? store.getState().speed.v : -store.getState().speed.v;
             return
         }
         this.position.y = newR
         if (this.canMove("h", 1, 1)) {
-            this.position.x += store.getState().speed
+            this.position.x += store.getState().speed.v
         }
     }
 
     ArrowLeft() {
         const newR = Math.trunc((this.position.y + (0.5 * this.size)) / this.size) * this.size
-        if ((Math.abs(newR - this.position.y)) > store.getState().speed) {
-            this.position.y += newR > this.position.y ? store.getState().speed : -store.getState().speed;
+        if ((Math.abs(newR - this.position.y)) > store.getState().speed.v) {
+            this.position.y += newR > this.position.y ? store.getState().speed.v : -store.getState().speed.v;
             return
         }
         this.position.y = newR
         if (this.canMove("h", 0, -1)) {
-            this.position.x -= store.getState().speed;
+            this.position.x -= store.getState().speed.v;
         }
     }
 
     ArrowUp() {
         const newC = Math.trunc((this.position.x + (0.5 * this.size)) / this.size) * this.size
-        if ((Math.abs(newC - this.position.x)) > store.getState().speed) {
-            this.position.x += newC > this.position.x ? store.getState().speed : -store.getState().speed;
+        if ((Math.abs(newC - this.position.x)) > store.getState().speed.v) {
+            this.position.x += newC > this.position.x ? store.getState().speed.v : -store.getState().speed.v;
             return
         }
         this.position.x = newC
         if (this.canMove("v", 0, -1)) {
-            this.position.y -= store.getState().speed;
+            this.position.y -= store.getState().speed.v;
         }
     }
 
     ArrowDown() {
         const newC = Math.trunc((this.position.x + (0.5 * this.size)) / this.size) * this.size
-        if ((Math.abs(newC - this.position.x)) > store.getState().speed) {
-            this.position.x += newC > this.position.x ? store.getState().speed : -store.getState().speed;
-            return
+        if ((Math.abs(newC - this.position.x)) > store.getState().speed.v) {
+            this.position.x += newC > this.position.x ? store.getState().speed.v : -store.getState().speed.v;
         }
         this.position.x = newC
         if (this.canMove("v", 1, 1)) {
-            this.position.y += store.getState().speed;
+            this.position.y += store.getState().speed.v;
         }
     }
 
     canMove(dir, v, x) {
         if (dir == "h") {
-            return store.getState().room.map[Math.trunc(((this.position.y + (this.size * 0.5)) / this.size))][Math.trunc(((this.position.x + (this.size * v) + (store.getState().speed * x)) / this.size))] == 0
+            return store.getState().room.map[Math.trunc(((this.position.y + (this.size * 0.5)) / this.size))][Math.trunc(((this.position.x + (this.size * v) + (store.getState().speed.v * x)) / this.size))] == 0
         } else {
-            return store.getState().room.map[Math.trunc(((this.position.y + (this.size * v) + (store.getState().speed * x)) / this.size))][Math.trunc(((this.position.x + (this.size * 0.5)) / this.size))] == 0
+            return store.getState().room.map[Math.trunc(((this.position.y + (this.size * v) + (store.getState().speed.v * x)) / this.size))][Math.trunc(((this.position.x + (this.size * 0.5)) / this.size))] == 0
         }
     }
 
     renderMovement() {
         this.element.style.transform = `translate(${this.position.x}px, ${this.position.y}px)`;
+        const i = Math.trunc(((this.position.y + (this.size * 0.5)) / this.size))
+        const j = Math.trunc(((this.position.x + (this.size * 0.5)) / this.size))
+        const powerType = store.getState().room.powerUps[`_${i}_${j}`]
+        if (powerType) {
+            document.getElementById(`${i}#${j}`).classList.remove(powerType)
+            switch (powerType) {
+                case "speed":
+                    if (this.name == store.getState().u_name) store.getState().speed.v *= 1.3;
+                    console.log("updated speed",store.getState().speed.v);
+                    
+                    break;
+                case "heart":
+                    this.lifes++
+                    break;
+                case "range":
+                    this.bombRange++
+                    console.log("ddd",this.bombRange);
+                    break;
+                case "amount":
+                    this.bombsCount++
+                    break;
+            }
+            store.getState().room.powerUps[`_${i}_${j}`] = ""
+            // console.log(store.getState().room.powerUps[`_${i}_${j}`]);
+            
+        }
     }
 
     moveAnimate(currentTime, dir) {
@@ -136,5 +176,24 @@ export class Player {
         // console.log(this.size/0.8);
 
         store.getState().ws.send(JSON.stringify(msg))
+    }
+
+    death() {
+        this.lifes -= 1;
+        this.alive = false
+        this.position.x = this.initPos.x;
+        this.position.y = this.initPos.y;
+        this.element.style.backgroundPosition = `0px 0px`;
+        this.element.classList.remove('opacity1')
+        setTimeout(() => {
+            this.revive = true;
+            this.alive = true;
+
+            this.element.style.transform = `translate(${this.position.x}px, ${this.position.y}px)`;
+            setTimeout(() => {
+                this.element.classList.add('opacity1')
+                this.revive = false;
+            }, 2000)
+        }, 2000)
     }
 }
