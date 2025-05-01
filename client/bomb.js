@@ -14,8 +14,24 @@ export class Bomb {
       lastUpdate: 0,
       animationSpeed: 100,
     }
-    this.affectedEmpties = []
-    this.affectedSofts = []
+
+    this.explotionSprite = {
+      framesize: this.size,
+      currentFrame: 0,
+      frameCount: 7,
+      lastUpdate: 0,
+      animationSpeed: 100,
+      // direction: {
+      //     ArrowDown: 0,
+      //     ArrowLeft: avatar == "sadako" ? size * 2 : size,
+      //     ArrowRight: avatar == "sadako" ? size : size * 2,
+      //     ArrowUp: size * 3
+      // }
+
+    }
+    this.animations = []
+    // this.affectedEmpties = []
+    // this.affectedSofts = []
     this.element.style.backgroundSize = `${5 * this.size}px, ${this.size}px`;
     this.element.classList.add("bomb");
   }
@@ -32,11 +48,18 @@ export class Bomb {
   explod() {
     this.element.classList.remove("bomb")
     const idx = this.owner.bombs.indexOf(this)
+    this.owner.explotionBombs.push(this)
+    this.setUpBg(`url('./images/BombEffectCenter.png')`, 7, 1, this.element)
+    this.animationObj(this.element, 2)
+    setTimeout(() => {
+      const idx = this.owner.explotionBombs.indexOf(this)
+      this.owner.explotionBombs.splice(idx, 1)
+      this.element.style.backgroundImage = '';
+    }, 700)
+
     if (idx != -1) this.owner.bombs.splice(idx, 1)
-    // this.element.classList.add("explosion-effect")
-    this.affectedEmpties.push(this.element)
+
     const dirs = [[1, 1, 0], [1, -1, 0], [1, 0, 1], [1, 0, -1]]
-    this.element.classList.add("explosion-effect");
     for (let r = 1; r <= this.owner.bombRange; r++) {
       dirs.forEach(([c, dx, dy], i) => {
         const ni = this.i + dx * r, nj = this.j + dy * r
@@ -45,43 +68,107 @@ export class Bomb {
           if (c == 1) {
             const el = document.getElementById(`${ni}#${nj}`)
             if (val == 1 || val == 2) {
-              
-              
               let classN = store.getState().room.powerUps[`_${ni}_${nj}`];
-              // console.log("power => ", classN);
-              
+
               dirs[i][0] = 0;
               if (val == 1) {
-                // el.classList.remove("soft");
                 setTimeout(() => {
                   el.classList.remove("soft");
                   el.classList.add("empty");
                   if (classN) el.classList.add(classN);
                   store.getState().room.map[ni][nj] = 0;
                 }, 300)
-                // this.affectedSofts.push(el)
               }
             } else {
               store.getState().players.forEach(player => {
-                const pi = Math.trunc((player.position.y +(player.size*0.5))/this.size)
-                const pj = Math.trunc((player.position.x +(player.size*0.5))/this.size)
-                // console.log(pi, pj, "////", ni, nj);
-                if(pi == ni && pj == nj && player.alive && !player.revive) {
+                const pi = Math.trunc((player.position.y + (player.size * 0.5)) / this.size)
+                const pj = Math.trunc((player.position.x + (player.size * 0.5)) / this.size)
+                if (i == 0) {
+                  if (r == this.owner.bombRange) {
+                    this.setUpBg(`url('./images/downTail.png')`, 1, 7, el)
+                  } else {
+                    this.setUpBg(`url('./images/midleV.png')`, 1, 7, el)
+                  }
+                  this.animationObj(el, 0)
+                } else if (i == 1) {
+                  if (r == this.owner.bombRange) {
+                    this.setUpBg(`url('./images/upTail.png')`, 1, 7, el)
+                  } else {
+                    this.setUpBg(`url('./images/midleV.png')`, 1, 7, el)
+                  }
+                  this.animationObj(el, 1)
+                } else if (i == 2) {
+                  if (r == this.owner.bombRange) {
+                    this.setUpBg(`url('./images/leftTail.png')`, 7, 1, el)
+                  } else {
+                    this.setUpBg(`url('./images/midleH.png')`, 7, 1, el)
+                  }
+                  this.animationObj(el, 2)
+                } else {
+                  if (r == this.owner.bombRange) {
+                    this.setUpBg(`url('./images/rightTail.png')`, 7, 1, el)
+                  } else {
+                    this.setUpBg(`url('./images/midleH.png')`, 7, 1, el)
+                  }
+                  // el.style.backgroundPosition = `-${this.size*7}px, 0px`
+                  this.animationObj(el, 3)
+                }
+
+                setTimeout(() => {
+                  el.style.backgroundImage = '';
+                }, 700)
+
+                if (pi == ni && pj == nj && player.alive && !player.revive) {
                   player.death()
                 }
               })
-              el.classList.add("explosion-effect");
-              setTimeout(() => {
-                el.classList.remove("explosion-effect");
-              }, 500)
             }
           }
         }
       })
     }
-    setTimeout(() => {
-      this.element.classList.remove("explosion-effect");
-    }, 500)
-    // console.log("empty",this.affectedEmpties, "soft=>",this.affectedSofts);
+  }
+
+  Explotion(currentTime, obj) {
+
+
+    if (currentTime - obj.lastUpdate > 700) {
+      obj.currentFrame = (obj.currentFrame + 1) % obj.frameCount;
+      obj.lastUpdate = currentTime;
+      const x = obj.currentFrame * obj.framesize;
+      obj.el.style.backgroundPosition = `${x * obj.d * obj.h}px ${x * obj.d * obj.v}px`;
+    }
+  }
+
+  animationObj(el, i) {
+    let d, h, v
+    if (i == 0) { d = -1; h = 0, v = 1 }
+    if (i == 1) { d = 1; h = 0, v = 1 }
+    if (i == 2) { d = -1; h = 1, v = 0 }
+    if (i == 3) { d = 1; h = 1, v = 0 }
+    const obj = {
+      el,
+      framesize: this.size,
+      currentFrame: 0,
+      lastUpdate: 0,
+      frameCount: 7,
+      h,
+      v,
+      d
+    }
+
+    if (i == 1 || i == 3) obj.currentFrame = 1;
+    this.animations.push([obj, this.Explotion])
+  }
+
+  handleExplotionAnimation(time) {
+    this.animations.forEach(([el, fn]) => {
+      fn(time, el)
+    })
+  }
+
+  setUpBg(url, x, y, el) {
+    el.style.backgroundSize = `${this.size * x}px ${this.size * y}px`;
+    el.style.backgroundImage = url;
   }
 }

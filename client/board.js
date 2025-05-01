@@ -112,19 +112,3 @@ function setUpKeysEvents(player) {
             }
     })
 }
-
-function handleMovements(player, direction) {
-    switch (direction) {
-        case "ArrowRight":
-            player.moveRight();
-            break;
-        case "ArrowLeft":
-            player.moveLeft();
-            break;
-        case "ArrowUp":
-            player.moveUp();
-            break;
-        case "ArrowDown":
-            player.moveDown();
-    }
-}

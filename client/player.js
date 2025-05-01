@@ -39,8 +39,9 @@ export class Player {
         }
 
         this.bombsCount = 1
-        this.bombs = []
-        this.bombRange = 1
+        this.bombs = [];
+        this.explotionBombs = []
+        this.bombRange = 1 
     }
 
     deathAnimation(currentTime) {

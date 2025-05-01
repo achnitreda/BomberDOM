@@ -51,6 +51,12 @@ function gameloop(time) {
             bomb.animate(time);
         })
 
+        player.explotionBombs.forEach(bomb => {
+            // console.log("xx");
+            
+            bomb.handleExplotionAnimation(time);
+        })
+
     });
 
     requestAnimationFrame(gameloop)
