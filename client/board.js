@@ -60,15 +60,15 @@ function players(cellSize) {
     const initPos = [[1, 1], [11, 13], [1, 13], [11, 1]]
     // console.log(store.getState().speed, "spped => ", cellSize*3*0.016); // 3 = x * 3 *0.016// x = 3 / 3*0.016// 40, speed ,
 
-    store.getState().speed.v = cellSize * 0.048
-    console.log("init speed --> ",store.getState().speed);
+    // store.getState().speed.v = cellSize * 0.048
+    // console.log("init speed --> ",store.getState().speed);
     store.getState().room.players.forEach((player, i) => {
 
         const x = cellSize * initPos[i][1];
         const y = cellSize * initPos[i][0];
         const playerx = new Player(x, y, size, store.getState().room.id, player.nickname, player.avatar);
         if (player.nickname == store.getState().u_name) {
-            // playerx.speed = cellSize * 0.048;
+            playerx.speed = cellSize * 0.048;
             // console.log("init speed --> ",playerx.speed);
             setUpKeysEvents(playerx)
         }
@@ -99,7 +99,6 @@ function setUpKeysEvents(player) {
 
         if (keys.includes(e.key) && !player.moveKeys.includes(e.key)) {
             player[e.key]()
-            player._sendPosition(e.key, "move")
             player.moveKeys.unshift(e.key)
         }   
     })

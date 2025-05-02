@@ -37,10 +37,12 @@ function gameloop(time) {
 
     store.getState().players.forEach(player => {
         if (player.moveKeys.length && player.alive) {
-            player[player.moveKeys[0]]();
+            if (player.name == store.getState().u_name) {
+                player[player.moveKeys[0]]();
+                player._sendPosition(player.moveKeys[0], "move");
+            }
             player.renderMovement();
             player.moveAnimate(time, player.moveKeys[0]);
-            
         }
 
         if (!player.alive || player.revive) {
@@ -52,8 +54,6 @@ function gameloop(time) {
         })
 
         player.explotionBombs.forEach(bomb => {
-            // console.log("xx");
-            
             bomb.handleExplotionAnimation(time);
         })
 

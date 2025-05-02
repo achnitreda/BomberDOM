@@ -41,7 +41,8 @@ export class Player {
         this.bombsCount = 1
         this.bombs = [];
         this.explotionBombs = []
-        this.bombRange = 1 
+        this.bombRange = 2
+        this.speed = 0 
     }
 
     deathAnimation(currentTime) {
@@ -70,56 +71,56 @@ export class Player {
 
     ArrowRight() {
         const newR = Math.trunc((this.position.y + (0.5 * this.size)) / this.size) * this.size
-        if ((Math.abs(newR - this.position.y)) > store.getState().speed.v) {
-            this.position.y += newR > this.position.y ? store.getState().speed.v : -store.getState().speed.v;
+        if ((Math.abs(newR - this.position.y)) > this.speed) {
+            this.position.y += newR > this.position.y ? this.speed : -this.speed;
             return
         }
         this.position.y = newR
         if (this.canMove("h", 1, 1)) {
-            this.position.x += store.getState().speed.v
+            this.position.x += this.speed
         }
     }
 
     ArrowLeft() {
         const newR = Math.trunc((this.position.y + (0.5 * this.size)) / this.size) * this.size
-        if ((Math.abs(newR - this.position.y)) > store.getState().speed.v) {
-            this.position.y += newR > this.position.y ? store.getState().speed.v : -store.getState().speed.v;
+        if ((Math.abs(newR - this.position.y)) > this.speed) {
+            this.position.y += newR > this.position.y ? this.speed : -this.speed;
             return
         }
         this.position.y = newR
         if (this.canMove("h", 0, -1)) {
-            this.position.x -= store.getState().speed.v;
+            this.position.x -= this.speed;
         }
     }
 
     ArrowUp() {
         const newC = Math.trunc((this.position.x + (0.5 * this.size)) / this.size) * this.size
-        if ((Math.abs(newC - this.position.x)) > store.getState().speed.v) {
-            this.position.x += newC > this.position.x ? store.getState().speed.v : -store.getState().speed.v;
+        if ((Math.abs(newC - this.position.x)) > this.speed) {
+            this.position.x += newC > this.position.x ? this.speed : -this.speed;
             return
         }
         this.position.x = newC
         if (this.canMove("v", 0, -1)) {
-            this.position.y -= store.getState().speed.v;
+            this.position.y -= this.speed;
         }
     }
 
     ArrowDown() {
         const newC = Math.trunc((this.position.x + (0.5 * this.size)) / this.size) * this.size
-        if ((Math.abs(newC - this.position.x)) > store.getState().speed.v) {
-            this.position.x += newC > this.position.x ? store.getState().speed.v : -store.getState().speed.v;
+        if ((Math.abs(newC - this.position.x)) > this.speed) {
+            this.position.x += newC > this.position.x ? this.speed : -this.speed;
         }
         this.position.x = newC
         if (this.canMove("v", 1, 1)) {
-            this.position.y += store.getState().speed.v;
+            this.position.y += this.speed;
         }
     }
 
     canMove(dir, v, x) {
         if (dir == "h") {
-            return store.getState().room.map[Math.trunc(((this.position.y + (this.size * 0.5)) / this.size))][Math.trunc(((this.position.x + (this.size * v) + (store.getState().speed.v * x)) / this.size))] == 0
+            return store.getState().room.map[Math.trunc(((this.position.y + (this.size * 0.5)) / this.size))][Math.trunc(((this.position.x + (this.size * v) + (this.speed * x)) / this.size))] == 0
         } else {
-            return store.getState().room.map[Math.trunc(((this.position.y + (this.size * v) + (store.getState().speed.v * x)) / this.size))][Math.trunc(((this.position.x + (this.size * 0.5)) / this.size))] == 0
+            return store.getState().room.map[Math.trunc(((this.position.y + (this.size * v) + (this.speed * x)) / this.size))][Math.trunc(((this.position.x + (this.size * 0.5)) / this.size))] == 0
         }
     }
 
@@ -132,8 +133,7 @@ export class Player {
             document.getElementById(`${i}#${j}`).classList.remove(powerType)
             switch (powerType) {
                 case "speed":
-                    // if (this.name == store.getState().u_name) store.getState().speed.v *= 1.3;
-                    // console.log("updated speed",store.getState().speed.v);
+                    if (this.name == store.getState().u_name) this.speed *= 1.5;
                     break;
                 case "heart":
                     this.lifes++
@@ -146,9 +146,7 @@ export class Player {
                     this.bombsCount++
                     break;
             }
-            store.getState().room.powerUps[`_${i}_${j}`] = ""
-            // console.log(store.getState().room.powerUps[`_${i}_${j}`]);
-            
+            store.getState().room.powerUps[`_${i}_${j}`] = "";
         }
     }
 
@@ -164,7 +162,6 @@ export class Player {
     }
 
     _sendPosition(dir, event) {
-        // console.log("xxxxxx");
         const msg = {
             type: "movement",
             event,
@@ -173,8 +170,6 @@ export class Player {
             room_id: this.roomId,
             name: this.name
         }
-        // console.log(this.size/0.8);
-
         store.getState().ws.send(JSON.stringify(msg))
     }
 

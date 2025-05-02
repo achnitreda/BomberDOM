@@ -21,17 +21,8 @@ export class Bomb {
       frameCount: 7,
       lastUpdate: 0,
       animationSpeed: 100,
-      // direction: {
-      //     ArrowDown: 0,
-      //     ArrowLeft: avatar == "sadako" ? size * 2 : size,
-      //     ArrowRight: avatar == "sadako" ? size : size * 2,
-      //     ArrowUp: size * 3
-      // }
-
     }
     this.animations = []
-    // this.affectedEmpties = []
-    // this.affectedSofts = []
     this.element.style.backgroundSize = `${5 * this.size}px, ${this.size}px`;
     this.element.classList.add("bomb");
   }
@@ -104,16 +95,16 @@ export class Bomb {
                   this.animationObj(el, 1)
                 } else if (i == 2) {
                   if (r == this.owner.bombRange) {
-                    this.setUpBg(`url('./images/explosion/leftTail.png')`, 7, 1, el)
+                    this.setUpBg(`url('./images/explosion/rightTail.png')`, 7, 1, el)
                   } else {
-                    this.setUpBg(`url('./images/explosion/midleLeft.png')`, 7, 1, el)
+                    this.setUpBg(`url('./images/explosion/midleRight.png')`, 7, 1, el)
                   }
                   this.animationObj(el, 2)
                 } else {
                   if (r == this.owner.bombRange) {
-                    this.setUpBg(`url('./images/explosion/rightTail.png')`, 7, 1, el)
+                    this.setUpBg(`url('./images/explosion/leftTail.png')`, 7, 1, el)
                   } else {
-                    this.setUpBg(`url('./images/explosion/midleRight.png')`, 7, 1, el)
+                    this.setUpBg(`url('./images/explosion/midleLeft.png')`, 7, 1, el)
                   }
                   this.animationObj(el, 3)
                 }

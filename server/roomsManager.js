@@ -18,7 +18,7 @@ class Room {
             sadako: false,
             sith: false
         }
-        console.log(this.powerUps);
+        // console.log(this.powerUps);
     }
 
     nameExist(u_name) {
@@ -30,7 +30,7 @@ class Room {
             const i = Math.trunc(Math.random() * 6);
             
             const av = Object.keys(this.avatars)[i];
-            console.log(i, av);
+            // console.log(i, av);
             if (!this.avatars[av]) {
                 this.avatars[av] = true;
                 return av;
@@ -63,7 +63,7 @@ class Room {
                     if (type == soft) {
                         if(Math.random() > .6) classN = PowerUps[Math.trunc(Math.random()*4)]
                     }
-                    console.log(classN);
+                    // console.log(classN);
                     
                     if (classN) powerUps[`_${i}_${j}`] = classN
                 }

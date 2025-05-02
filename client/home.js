@@ -22,13 +22,11 @@ function handleNameSub() {
 
         ws.onmessage = (msg) => {
             const data = JSON.parse(msg.data);
-            // console.log(data);
-            
             switch (data.type) {
                 case "name taken":
                     store.setState({ loginError: "this name is taken, choose another one!!!" }); break;
                 case "waiting room update":
-                    
+
                     store.setState({
                         view: "waiting",
                         playersNames: data.payload.playersNames,
@@ -40,7 +38,6 @@ function handleNameSub() {
                     store.setState({ countdown: data.countdown, isWaiting: data.isWaiting });
                     Render();
                     break;
-
                 case 'start game':
                     store.setState({ view: 'game' });
                     store.setState({ room: data.game });
@@ -59,13 +56,11 @@ function handleNameSub() {
                     Render();
                     break;
                 case "movement":
-                    // console.log("ll");
-                    
                     store.getState().players.forEach(player => {
                         if (player.name === data.name) {
-                            if(data.event == "move" ){
-                                // player.position.x = data.amount[0] * (player.size);
-                                // player.position.y = data.amount[1] * (player.size);
+                            if (data.event == "move") {
+                                player.position.x = data.amount[0] * (player.size);
+                                player.position.y = data.amount[1] * (player.size);
                                 if (!player.moveKeys.includes(data.dir)) {
                                     player.moveKeys.unshift(data.dir)
                                 }
@@ -73,7 +68,7 @@ function handleNameSub() {
                                 const keyIdx = player.moveKeys.indexOf(data.dir)
                                 if (keyIdx != -1) {
                                     player.moveKeys.splice(keyIdx, 1)
-                               }
+                                }
                             }
                         }
                     });
@@ -95,7 +90,6 @@ function handleNameSub() {
         type: "join",
         u_name: name
     }
-
     ws.send(JSON.stringify(msg))
 }
 
