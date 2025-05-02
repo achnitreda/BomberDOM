@@ -25,8 +25,53 @@ function calcCellSize() {
 }
 
 
+function renderHearts() {
+    const hearts = []
+    for (let i = 0; i < 3; i++) {
+        hearts.push(
+            mf.createElement("span", {}, "❤️")
+        )
+    }
+    return hearts
+}
+
+
+export function setTimer(sec, minu) {
+    const Sec = sec % 60;
+    const Minu = minu % 60;
+    // store.setState({ timer: `${Minu.toString().padStart(2, "0")}:${Sec.toString().padStart(2, "0")}` });
+    document.getElementById("time").innerText = `${Minu.toString().padStart(2, "0")}:${Sec.toString().padStart(2, "0")}`
+}
+
+
+function GameHeader() {
+    const u_name = store.getState().u_name;
+    const player = store.getState().room.players.find(p => p.nickname === u_name);
+    return mf.createElement("div", { class: "game-header" }, [
+        mf.createElement("div", { class: "player-info" }, [
+            mf.createElement("div", { class: "avatar", style: `background-image: url('./images/${player.avatar}.png')` }),
+            mf.createElement("div", { class: "name" }, player.nickname)
+        ]),
+        mf.createElement("div", { class: "lives" }, renderHearts()),
+        mf.createElement("div", { id: "time" }, `⏱️ Time:`)
+    ])
+}
+
+function GameResultOverlay() {
+    return mf.createElement("div", {
+        class: "game-result-overlay"
+    }, store.getState().gameEnd && [
+        mf.createElement("div", { class: "resultMessage" }, store.getState().resultMessage),
+        mf.createElement("button", { 
+            class: "restart-button",
+            onClick: () => {
+            }
+        }, "Play Again")
+    ]);
+}
+
 export function GameView() {
-    return mf.createElement("div", { class: "game-view" }, Board(), chatMessage())
+    return mf.createElement("div", { class: "game-view" }, GameHeader(), Board(), chatMessage(), GameResultOverlay())
 }
 
 function Board() {
@@ -61,7 +106,6 @@ function players(cellSize) {
     // console.log(store.getState().speed, "spped => ", cellSize*3*0.016); // 3 = x * 3 *0.016// x = 3 / 3*0.016// 40, speed ,
 
     store.getState().speed.v = cellSize * 0.048
-    console.log("init speed --> ",store.getState().speed);
     store.getState().room.players.forEach((player, i) => {
 
         const x = cellSize * initPos[i][1];
@@ -72,7 +116,7 @@ function players(cellSize) {
             // console.log("init speed --> ",playerx.speed);
             setUpKeysEvents(playerx)
         }
-        
+
         players.push(mf.createElement("div", {
             class: "player",
             style: `width: ${size}px; height: ${size}px; transform: translate(${x}px, ${y}px);`,
@@ -92,23 +136,23 @@ function players(cellSize) {
 function setUpKeysEvents(player) {
     const keys = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"]
     addEventListener("keydown", (e) => {
-        if(e.key === "z"){
+        if (e.key === "z") {
             player.createBomb()
-            store.getState().ws.send(JSON.stringify({type:"bomb", name:player.name, room_id: store.getState().room.id}))
+            store.getState().ws.send(JSON.stringify({ type: "bomb", name: player.name, room_id: store.getState().room.id }))
         }
 
         if (keys.includes(e.key) && !player.moveKeys.includes(e.key)) {
             player[e.key]()
             player._sendPosition(e.key, "move")
             player.moveKeys.unshift(e.key)
-        }   
+        }
     })
 
     addEventListener("keyup", (e) => {
         const keyIdx = player.moveKeys.indexOf(e.key)
-            if (keyIdx != -1) {
-                player._sendPosition(e.key, "stop")
-                player.moveKeys.splice(keyIdx, 1)
-            }
+        if (keyIdx != -1) {
+            player._sendPosition(e.key, "stop")
+            player.moveKeys.splice(keyIdx, 1)
+        }
     })
 }

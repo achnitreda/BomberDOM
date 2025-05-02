@@ -1,4 +1,5 @@
 import mf from "./mini-framework.js"
+import { setTimer } from "./board.js"
 
 let unsubscribe
 const app = document.getElementById("app")
@@ -32,9 +33,22 @@ export async function Render() {
 
 Render()
 
+let frameNb = 0;
+
+export function GameResultOverlay(message) {
+    return mf.createElement("div", {
+        class: "game-result-overlay"
+    }, mf.createElement("div", { class: "message" }, message))
+}
+
+
 
 function gameloop(time) {
 
+    const sec = Math.floor(frameNb / 60);
+    const minu = Math.floor(sec / 60);
+    setTimer(sec, minu);
+    
     store.getState().players.forEach(player => {
         if (player.moveKeys.length && player.alive) {
             player[player.moveKeys[0]]();
@@ -51,13 +65,11 @@ function gameloop(time) {
             bomb.animate(time);
         })
 
-        player.explotionBombs.forEach(bomb => {
-            // console.log("xx");
-            
+        player.explotionBombs.forEach(bomb => {            
             bomb.handleExplotionAnimation(time);
         })
 
     });
-
+    frameNb++
     requestAnimationFrame(gameloop)
 }

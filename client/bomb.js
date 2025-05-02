@@ -49,8 +49,6 @@ export class Bomb {
     this.element.classList.remove("bomb")
     const idx = this.owner.bombs.indexOf(this)
     this.owner.explotionBombs.push(this)
-    this.setUpBg(`url('./images/BombEffectCenter.png')`, 7, 1, this.element)
-    this.animationObj(this.element, 2)
     setTimeout(() => {
       const idx = this.owner.explotionBombs.indexOf(this)
       this.owner.explotionBombs.splice(idx, 1)
@@ -60,7 +58,7 @@ export class Bomb {
     if (idx != -1) this.owner.bombs.splice(idx, 1)
 
     const dirs = [[1, 1, 0], [1, -1, 0], [1, 0, 1], [1, 0, -1]]
-    for (let r = 1; r <= this.owner.bombRange; r++) {
+    for (let r = 0; r <= this.owner.bombRange; r++) {
       dirs.forEach(([c, dx, dy], i) => {
         const ni = this.i + dx * r, nj = this.j + dy * r
         if (ni >= 0 && ni <= 12 && nj >= 0 && nj <= 14) {
@@ -83,7 +81,10 @@ export class Bomb {
               store.getState().players.forEach(player => {
                 const pi = Math.trunc((player.position.y + (player.size * 0.5)) / this.size)
                 const pj = Math.trunc((player.position.x + (player.size * 0.5)) / this.size)
-                if (i == 0) {
+                if (r == 0) {
+                  this.setUpBg(`url('./images/BombEffectCenter.png')`, 7, 1, this.element)
+                  this.animationObj(this.element, 2)
+                }else if (i == 0) {
                   if (r == this.owner.bombRange) {
                     this.setUpBg(`url('./images/downTail.png')`, 1, 7, el)
                   } else {
@@ -132,7 +133,7 @@ export class Bomb {
   Explotion(currentTime, obj) {
 
 
-    if (currentTime - obj.lastUpdate > 700) {
+    if (currentTime - obj.lastUpdate > 100) {
       obj.currentFrame = (obj.currentFrame + 1) % obj.frameCount;
       obj.lastUpdate = currentTime;
       const x = obj.currentFrame * obj.framesize;
