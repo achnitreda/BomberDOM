@@ -215,67 +215,36 @@
 }
 
 .heart {
-  background-image: url("./images/heart.webp");
+  background-image: url("./images/bowerUps/heart.webp");
   background-size: 20px  !important;
   background-repeat: no-repeat;
   background-position: center;
 }
 
 .amount {
-  background-image: url("./images/amount.webp");
+  background-image: url("./images/bowerUps/amount.webp");
   background-size: 20px !important;
   background-repeat: no-repeat;
   background-position: center;
 }
 
 .speed {
-  background-image: url("./images/speed.webp");
+  background-image: url("./images/bowerUps/speed.webp");
   background-size: 20px  !important;
   background-repeat: no-repeat;
   background-position: center;
 }
 
 .range {
-  background-image: url("./images/range.webp");
+  background-image: url("./images/bowerUps/range.webp");
   background-size: 20px !important;
   background-repeat: no-repeat;
   background-position: center;
 }
 
-.explosion-effect {
-  background: radial-gradient(circle, yellow 20%, orange 60%, red 100%);
-  animation: explosion 0.5s forwards;
-}
-
-@keyframes explosion {
-  from {
-    transform: scale(0.9);
-    /* opacity: 1;  */
-  }
-  to {
-    transform: scale(1.2);
-    /* opacity: 0; */
-  }
-}
-
-
-
 .bomb {   
   background-image: url('./images/bomb.png');
-  /* background-repeat: no-repeat; */
-  /* background-size: cover; */
-  /* animation: walk 0.3s steps(5) infinite; */
 }
-
-/* @keyframes walk {
-  from {
-    background-position: 0 0;
-  }
-  to {
-    background-position: -384px 0;  
-  }
-} */
-
 
 
 

@@ -65,7 +65,7 @@ export class Player {
 
     bgResize() {
         this.element.style.backgroundSize = `${this.size * 4}px ${this.size * 4}px`;
-        this.element.style.backgroundImage = `url(./images/${this.avatar}.png)`
+        this.element.style.backgroundImage = `url(./images/avatars/${this.avatar}.png)`
     }
 
     ArrowRight() {
@@ -132,9 +132,8 @@ export class Player {
             document.getElementById(`${i}#${j}`).classList.remove(powerType)
             switch (powerType) {
                 case "speed":
-                    if (this.name == store.getState().u_name) store.getState().speed.v *= 1.3;
-                    console.log("updated speed",store.getState().speed.v);
-                    
+                    // if (this.name == store.getState().u_name) store.getState().speed.v *= 1.3;
+                    // console.log("updated speed",store.getState().speed.v);
                     break;
                 case "heart":
                     this.lifes++

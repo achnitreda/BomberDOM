@@ -49,7 +49,7 @@ export class Bomb {
     this.element.classList.remove("bomb")
     const idx = this.owner.bombs.indexOf(this)
     this.owner.explotionBombs.push(this)
-    this.setUpBg(`url('./images/BombEffectCenter.png')`, 7, 1, this.element)
+    this.setUpBg(`url('./images/explosion/center.png')`, 7, 1, this.element)
     this.animationObj(this.element, 2)
     setTimeout(() => {
       const idx = this.owner.explotionBombs.indexOf(this)
@@ -83,34 +83,38 @@ export class Bomb {
               store.getState().players.forEach(player => {
                 const pi = Math.trunc((player.position.y + (player.size * 0.5)) / this.size)
                 const pj = Math.trunc((player.position.x + (player.size * 0.5)) / this.size)
+                const powerUp = store.getState().room.powerUps[`_${ni}_${nj}`]
+                if(powerUp) {
+                  store.getState().room.powerUps[`_${ni}_${nj}`] = "";
+                  el.classList.remove(powerUp)
+                }
                 if (i == 0) {
                   if (r == this.owner.bombRange) {
-                    this.setUpBg(`url('./images/downTail.png')`, 1, 7, el)
+                    this.setUpBg(`url('./images/explosion/downTail.png')`, 1, 7, el)
                   } else {
-                    this.setUpBg(`url('./images/midleV.png')`, 1, 7, el)
+                    this.setUpBg(`url('./images/explosion/midleDown.png')`, 1, 7, el)
                   }
                   this.animationObj(el, 0)
                 } else if (i == 1) {
                   if (r == this.owner.bombRange) {
-                    this.setUpBg(`url('./images/upTail.png')`, 1, 7, el)
+                    this.setUpBg(`url('./images/explosion/upTail.png')`, 1, 7, el)
                   } else {
-                    this.setUpBg(`url('./images/midleV.png')`, 1, 7, el)
+                    this.setUpBg(`url('./images/explosion/midleUp.png')`, 1, 7, el)
                   }
                   this.animationObj(el, 1)
                 } else if (i == 2) {
                   if (r == this.owner.bombRange) {
-                    this.setUpBg(`url('./images/leftTail.png')`, 7, 1, el)
+                    this.setUpBg(`url('./images/explosion/leftTail.png')`, 7, 1, el)
                   } else {
-                    this.setUpBg(`url('./images/midleH.png')`, 7, 1, el)
+                    this.setUpBg(`url('./images/explosion/midleLeft.png')`, 7, 1, el)
                   }
                   this.animationObj(el, 2)
                 } else {
                   if (r == this.owner.bombRange) {
-                    this.setUpBg(`url('./images/rightTail.png')`, 7, 1, el)
+                    this.setUpBg(`url('./images/explosion/rightTail.png')`, 7, 1, el)
                   } else {
-                    this.setUpBg(`url('./images/midleH.png')`, 7, 1, el)
+                    this.setUpBg(`url('./images/explosion/midleRight.png')`, 7, 1, el)
                   }
-                  // el.style.backgroundPosition = `-${this.size*7}px, 0px`
                   this.animationObj(el, 3)
                 }
 
@@ -130,9 +134,7 @@ export class Bomb {
   }
 
   Explotion(currentTime, obj) {
-
-
-    if (currentTime - obj.lastUpdate > 700) {
+    if (currentTime - obj.lastUpdate > 100) {
       obj.currentFrame = (obj.currentFrame + 1) % obj.frameCount;
       obj.lastUpdate = currentTime;
       const x = obj.currentFrame * obj.framesize;
