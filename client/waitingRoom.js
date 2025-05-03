@@ -23,13 +23,12 @@ export function chatMessage() {
     }
 
     return mf.createElement("div", { class: "chat-container" },
-        mf.createElement("h3", {}, "Chat"),
+        mf.createElement("h3", {class: "chat-header"}, "Chat"),
         mf.createElement("div", { class: "chat-messages" },
             messages.map(m =>
                 mf.createElement("div", { class: "chat-message" },
                     mf.createElement('span', { class: 'sender' }, `${m.nickname}:`),
-                    mf.createElement("span", {}, m.text),
-                    mf.createElement('span', { class: 'time' }, m.time)
+                    mf.createElement("span", {}, m.text)
                 )
             )
         ),

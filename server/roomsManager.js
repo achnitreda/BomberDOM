@@ -1,4 +1,4 @@
-const PowerUps = ["speed", "heart", "range", "amount"]
+const PowerUps = ["speed", "range", "amount"]
 
 class Room {
     constructor(id) {
@@ -28,7 +28,7 @@ class Room {
     pickAvatar() {
         while (1) {
             const i = Math.trunc(Math.random() * 6);
-            
+
             const av = Object.keys(this.avatars)[i];
             // console.log(i, av);
             if (!this.avatars[av]) {
@@ -61,15 +61,15 @@ class Room {
                     map[i][j] = type;
                     let classN = "";
                     if (type == soft) {
-                        if(Math.random() > .6) classN = PowerUps[Math.trunc(Math.random()*4)]
+                        if (Math.random() > .6) classN = PowerUps[Math.trunc(Math.random() * 4)]
                     }
                     // console.log(classN);
-                    
+
                     if (classN) powerUps[`_${i}_${j}`] = classN
                 }
             }
         }
-        
+
         return map
     }
 
@@ -128,13 +128,21 @@ class Room {
         }
     }
 
+    broadcastMsg(msg) {
+        const msgx = JSON.stringify(msg)
+        this.players.forEach(player => {
+            if (player.nickname !== msg.name) {
+                player.ws.send(msgx)
+            }
+        })
+    }
+
     sendChatMessage(nickname, text) {
         const message = {
             nickname,
             text: text,
             time: Date.now()
         };
-        // console.log(message);
 
         this.messages.push(message);
 
@@ -173,7 +181,7 @@ export const RoomsManager = {
     },
 
     broadcastMsg(msg) {
-       const msgx = JSON.stringify(msg)
+        const msgx = JSON.stringify(msg)
         this.rooms.forEach(room => {
             if (room.id === msg.room_id) {
                 room.players.forEach(player => {

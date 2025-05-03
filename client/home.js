@@ -6,12 +6,10 @@ function handleNameSub() {
     let ws = store.getState().ws
 
     if (!ws) {
-
-        ws = new WebSocket("ws://localhost:3000")
+        ws = new WebSocket("ws://10.1.7.8:3000")
         store.setState({ ws })
 
         ws.onopen = () => {
-            store.getState().ws = ws
             console.log("ws connected front!!!!");
             const msg = {
                 type: "join",
@@ -28,32 +26,29 @@ function handleNameSub() {
                 case "waiting room update":
 
                     store.setState({
-                        view: "waiting",
+                        // view: "waiting",
                         playersNames: data.payload.playersNames,
                         playerCount: data.payload.playerCount,
                     });
-                    Render();
+                    Render("waiting");
                     break;
                 case 'countdown':
                     store.setState({ countdown: data.countdown, isWaiting: data.isWaiting });
-                    Render();
+                    // Render('countdown');
                     break;
                 case 'start game':
-                    store.setState({ view: 'game' });
+                    // store.setState({ view: 'game' });
                     store.setState({ room: data.game });
-                    Render();
+                    Render('game');
                     break;
                 case 'chatMessage':
-
-                    const msg = [...store.getState().messages]
-                    msg.push({
+                    store.getState().messages.push({
                         id: Date.now().toString(),
                         text: data.message.text,
                         nickname: data.message.nickname,
                         time: new Date(data.message.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                     })
-                    store.setState({ messages: msg })
-                    Render();
+                    // Render();
                     break;
                 case "movement":
                     store.getState().players.forEach(player => {
@@ -80,6 +75,15 @@ function handleNameSub() {
                         }
                     })
                     break;
+                case "disconnect":
+                    store.getState().players.forEach(player => {
+                        if (player.name === data.name) {
+                            const idx = store.getState().players.indexOf(player)
+                            player.element.remove()
+                            store.getState().players.splice(idx, 1)
+                        }
+                    })
+                    
             }
         }
 

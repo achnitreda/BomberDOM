@@ -41,7 +41,7 @@ export class Player {
         this.bombsCount = 1
         this.bombs = [];
         this.explotionBombs = []
-        this.bombRange = 2
+        this.bombRange = 1
         this.speed = 0 
     }
 
@@ -133,10 +133,7 @@ export class Player {
             document.getElementById(`${i}#${j}`).classList.remove(powerType)
             switch (powerType) {
                 case "speed":
-                    if (this.name == store.getState().u_name) this.speed *= 1.5;
-                    break;
-                case "heart":
-                    this.lifes++
+                    if (this.name == store.getState().u_name) this.speed *= 1.1;
                     break;
                 case "range":
                     this.bombRange++
@@ -175,15 +172,27 @@ export class Player {
 
     death() {
         this.lifes -= 1;
+        if (this.name == store.getState().u_name) {
+            store.getState().lifes.removeChild(store.getState().lifes.lastChild);
+        }
         this.alive = false
         this.position.x = this.initPos.x;
         this.position.y = this.initPos.y;
         this.element.style.backgroundPosition = `0px 0px`;
         this.element.classList.remove('opacity1')
         setTimeout(() => {
+            if(this.lifes == 0) {
+                store.getState().players.forEach(player => {
+                    if (player.name === this.name) {
+                        const idx = store.getState().players.indexOf(player)
+                        player.element.remove()
+                        store.getState().players.splice(idx, 1)
+                    }
+                })
+                return
+            }
             this.revive = true;
             this.alive = true;
-
             this.element.style.transform = `translate(${this.position.x}px, ${this.position.y}px)`;
             setTimeout(() => {
                 this.element.classList.add('opacity1')

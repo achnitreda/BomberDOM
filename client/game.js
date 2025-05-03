@@ -2,39 +2,49 @@ import mf from "./mini-framework.js"
 
 let unsubscribe
 const app = document.getElementById("app")
-export const store = mf.createStore({ view: "login", messages: [], players: [], ws: null, speed: {v:0} })
+export const store = mf.createStore({ /*view: "login",*/ messages: [], players: [], ws: null, speed: {v:0}, heart: {v: null} })
+export let id
 
-export async function Render() {
+export async function Render(view) {
     let component = null
-    switch (store.getState().view) {
+    // console.log(store.getState().view)
+    
+    switch (view) {
         case "login":
             const { homePage } = await import("./home.js");
             component = homePage;
             break;
         case "waiting":
             const { WaitingRoom } = await import("./waitingRoom.js");
-            component = WaitingRoom;
+            component = WaitingRoom;            
             break;
         case "game":
             const { GameView } = await import("./board.js");
             component = GameView;
-            requestAnimationFrame(gameloop)
-
+            id=requestAnimationFrame(gameloop)
+            break
+        case "game over":
+            const { winScreen } = await import("./board.js");
+            component = winScreen;
             break;
 
     }
+
     if (unsubscribe) unsubscribe();
-    mf.render(component(), app);
+    if (view == "game over") {
+        mf.render(component(store.getState().players[0].name), app);
+    }else{
+        mf.render(component(), app);
+    }
     unsubscribe = store.subscribe(() => {
         mf.render(component(), app)
     })
 }
 
-Render()
-
+Render("login")
 
 function gameloop(time) {
-
+    
     store.getState().players.forEach(player => {
         if (player.moveKeys.length && player.alive) {
             if (player.name == store.getState().u_name) {
@@ -59,5 +69,5 @@ function gameloop(time) {
 
     });
 
-    requestAnimationFrame(gameloop)
+    id = requestAnimationFrame(gameloop)
 }

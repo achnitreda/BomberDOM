@@ -1,4 +1,4 @@
-import { store } from "./game.js";
+import { Render, store,id } from "./game.js";
 
 export class Bomb {
   constructor(i, j, size, owner) {
@@ -113,8 +113,16 @@ export class Bomb {
                   el.style.backgroundImage = '';
                 }, 700)
 
-                if (pi == ni && pj == nj && player.alive && !player.revive) {
+                if (((pi == ni && pj == nj) || (pi == this.i && pj == this.j)) && player.alive && !player.revive) {
                   player.death()
+                  setTimeout(() => {
+                    if(store.getState().players.length == 1) {
+                      cancelAnimationFrame(id)
+                      // store.setState({view: "game over"})
+                      Render("game over")
+                      console.log("game over winner is: ", store.getState().players[0].name);
+                    }
+                  }, 2025)
                 }
               })
             }

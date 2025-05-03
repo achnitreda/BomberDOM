@@ -91,12 +91,16 @@ wsServer.on("connection", (ws) => {
     })
 
     ws.on("close", () => {
-        // console.log("connection closed!!!!!!");
+        const idx = room.players.indexOf(player)
+        room.players.splice(idx, 1)
+        RoomsManager.broadcastMsg({type: "disconnect", name: player.nickname, room_id: room.id})
     })
+    ws.on("error" , (err) => console.log(err));
+    
 })
 
 
 
-server.listen(3000, "", () => {
-    console.log("server started at http://localhost:3000");
+server.listen(3000, "0.0.0.0", () => {
+    console.log("server started at http://0.0.0.0:3000");
 })

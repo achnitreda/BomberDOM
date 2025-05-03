@@ -1,11 +1,12 @@
-import { store } from "./game.js";
+import { Render, store } from "./game.js";
 import mf from "./mini-framework.js";
-import { particls } from "./home.js";
 import { chatMessage } from "./waitingRoom.js";
 import { Player } from "./player.js";
 
 const MIN_CELL_SIZE = 32;
 const MAX_CELL_SIZE = 64;
+
+let devicePlayer
 
 function calcCellSize() {
     const windowWidth = window.innerWidth;
@@ -31,12 +32,11 @@ export function GameView() {
 
 function Board() {
     const cellSize = calcCellSize();
-    // console.log(cellSize);
 
     return mf.createElement("div", {
         class: "board",
         style: `grid-template-rows: repeat(13, ${cellSize}px); grid-template-columns: repeat(15, ${cellSize}px);`
-    }, Cells(), players(cellSize))
+    }, Cells(), players(cellSize), gameHeader())
 }
 
 
@@ -58,10 +58,6 @@ function players(cellSize) {
     const size = Math.trunc(cellSize)
     const players = []
     const initPos = [[1, 1], [11, 13], [1, 13], [11, 1]]
-    // console.log(store.getState().speed, "spped => ", cellSize*3*0.016); // 3 = x * 3 *0.016// x = 3 / 3*0.016// 40, speed ,
-
-    // store.getState().speed.v = cellSize * 0.048
-    // console.log("init speed --> ",store.getState().speed);
     store.getState().room.players.forEach((player, i) => {
 
         const x = cellSize * initPos[i][1];
@@ -69,10 +65,10 @@ function players(cellSize) {
         const playerx = new Player(x, y, size, store.getState().room.id, player.nickname, player.avatar);
         if (player.nickname == store.getState().u_name) {
             playerx.speed = cellSize * 0.048;
-            // console.log("init speed --> ",playerx.speed);
-            setUpKeysEvents(playerx)
+            devicePlayer = playerx;
+            setUpKeysEvents()
         }
-        
+
         players.push(mf.createElement("div", {
             class: "player",
             style: `width: ${size}px; height: ${size}px; transform: translate(${x}px, ${y}px);`,
@@ -82,32 +78,87 @@ function players(cellSize) {
             }
         }))
 
-        // console.log("init for plys", playerx.speed,"-->", playerx.name);
         store.getState().players.push(playerx);
 
     })
+    console.log(store.getState().players);
+
     return players
 }
 
-function setUpKeysEvents(player) {
-    const keys = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"]
-    addEventListener("keydown", (e) => {
-        if(e.key === "z"){
-            player.createBomb()
-            store.getState().ws.send(JSON.stringify({type:"bomb", name:player.name, room_id: store.getState().room.id}))
+const keys = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"]
+
+function keyDownHandler(e) {
+    console.log("00");
+    if (e.key === "z") {
+        if (e.target.tagName != "INPUT") {
+            devicePlayer.createBomb()
+            store.getState().ws.send(JSON.stringify({ type: "bomb", name: devicePlayer.name, room_id: store.getState().room.id }))
         }
+    }
 
-        if (keys.includes(e.key) && !player.moveKeys.includes(e.key)) {
-            player[e.key]()
-            player.moveKeys.unshift(e.key)
-        }   
-    })
+    if (keys.includes(e.key) && !devicePlayer.moveKeys.includes(e.key)) {
+        devicePlayer[e.key]()
+        devicePlayer.moveKeys.unshift(e.key)
+    }
+}
 
-    addEventListener("keyup", (e) => {
-        const keyIdx = player.moveKeys.indexOf(e.key)
-            if (keyIdx != -1) {
-                player._sendPosition(e.key, "stop")
-                player.moveKeys.splice(keyIdx, 1)
+function keyUpHandler(e) {
+    console.log("11");
+        const keyIdx = devicePlayer.moveKeys.indexOf(e.key)
+        if (keyIdx != -1) {
+            devicePlayer._sendPosition(e.key, "stop")
+            devicePlayer.moveKeys.splice(keyIdx, 1)
+        }
+}
+
+function setUpKeysEvents() {
+    addEventListener("keydown", keyDownHandler)
+    addEventListener("keyup", keyUpHandler)
+}
+
+
+function removeKeysEvents() {
+    removeEventListener("keydown", keyDownHandler)
+    removeEventListener("keyup", keyUpHandler)
+}
+
+
+function gameHeader() {
+    const player = store.getState().players.find(player => player.name == store.getState().u_name)
+    return mf.createElement("span", {
+        class: "game-header",
+    },
+        mf.createElement('span', {
+            class: "character",
+            ref: (el) => {
+                el.style.backgroundImage = `url(./images/avatars/${player.avatar}.png)`;
             }
-    })
+        }),
+        mf.createElement('span', {
+            class: "hearts",
+            ref: (el) => {
+                store.setState({ lifes: el })
+            }
+        }, heart(), heart(), heart())
+    )
+}
+
+function heart() {
+    return mf.createElement('p', {}, '❤️')
+}
+
+export function winScreen(name) {
+    return mf.createElement('div', { class: "win-screen" },
+        mf.createElement('h1', { id: 'h1' }, `THE WINNER IS ${name}`),
+        mf.createElement('span', {
+            class: 'replay',
+            onclick: () => {
+                // store.setState({view: 'login'})
+                store.setState({ players: [] })
+                removeKeysEvents()
+                Render('login');
+            }
+        }, 'PLAY AGAIN')
+    )
 }
