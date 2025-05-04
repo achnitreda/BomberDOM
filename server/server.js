@@ -52,7 +52,6 @@ wsServer.on("connection", (ws) => {
                 const name = data.u_name?.trim()
                 if (!name) return
                 room = RoomsManager.getAvailbelRooms();
-
                 if (room.nameExist(name)) {
                     const msg = {
                         type: "name taken"
@@ -93,10 +92,19 @@ wsServer.on("connection", (ws) => {
     ws.on("close", () => {
         const idx = room.players.indexOf(player)
         room.players.splice(idx, 1)
-        RoomsManager.broadcastMsg({type: "disconnect", name: player.nickname, room_id: room.id})
+        room.avatars[player.avatar] = false
+        if (room.status != "playing") {
+            room.broadcast({
+                type: "waiting room update",
+                payload: {
+                    playersNames: room.players.map(p => p.nickname),
+                    playerCount: room.players.length
+                }
+            })
+        }
     })
-    ws.on("error" , (err) => console.log(err));
-    
+    ws.on("error", (err) => console.log(err));
+
 })
 
 

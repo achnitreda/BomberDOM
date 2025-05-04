@@ -28,9 +28,7 @@ class Room {
     pickAvatar() {
         while (1) {
             const i = Math.trunc(Math.random() * 6);
-
             const av = Object.keys(this.avatars)[i];
-            // console.log(i, av);
             if (!this.avatars[av]) {
                 this.avatars[av] = true;
                 return av;
