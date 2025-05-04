@@ -6,7 +6,7 @@ function handleNameSub() {
     let ws = store.getState().ws
 
     if (!ws) {
-        ws = new WebSocket("ws://10.1.7.8:3000")
+        ws = new WebSocket("ws://localhost:3000")
         store.setState({ ws })
 
         ws.onopen = () => {
@@ -42,12 +42,16 @@ function handleNameSub() {
                     Render('game');
                     break;
                 case 'chatMessage':
-                    store.getState().messages.push({
+                    const newMessage = {
                         id: Date.now().toString(),
                         text: data.message.text,
                         nickname: data.message.nickname,
-                        time: new Date(data.message.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                    })
+                        time: new Date(data.message.time).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })
+                    };
+                    store.setState({ messages: [...store.getState().messages, newMessage] })
                     // Render();
                     break;
                 case "movement":
@@ -83,7 +87,7 @@ function handleNameSub() {
                             store.getState().players.splice(idx, 1)
                         }
                     })
-                    
+
             }
         }
 

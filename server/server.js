@@ -49,7 +49,7 @@ wsServer.on("connection", (ws) => {
         const data = JSON.parse(msg);
         switch (data.type) {
             case "join":
-                const name = data.u_name.trim()
+                const name = data.u_name?.trim()
                 if (!name) return
                 room = RoomsManager.getAvailbelRooms();
 

@@ -120,7 +120,9 @@ export class Bomb {
                       cancelAnimationFrame(id)
                       // store.setState({view: "game over"})
                       Render("game over")
-                      console.log("game over winner is: ", store.getState().players[0].name);
+                    }else if (store.getState().players.length == 0) {
+                      cancelAnimationFrame(id)
+                      Render("game over")
                     }
                   }, 2025)
                 }

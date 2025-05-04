@@ -61,6 +61,5 @@ export function WaitingRoom() {
             playerCount < 2 ? mf.createElement("p", { class: "waiting-info" }, `Waiting for more players to join...`) :
             isWaiting ? mf.createElement("p", { class: "waiting-info" }, `Waiting for more players: Game starting in ${countdown} seconds`) :
             mf.createElement("p", { class: "waiting-info" }, `Get ready to play! Game starting in: ${countdown} seconds`),
-            chatMessage(),
-        ));
+        ),chatMessage());
 }

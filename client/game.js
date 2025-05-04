@@ -31,8 +31,8 @@ export async function Render(view) {
     }
 
     if (unsubscribe) unsubscribe();
-    if (view == "game over") {
-        mf.render(component(store.getState().players[0].name), app);
+    if (view == "game over") {        
+        mf.render(component(store.getState().players?.length > 0 && store.getState().players[0].name), app);
     }else{
         mf.render(component(), app);
     }

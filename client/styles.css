@@ -292,6 +292,7 @@
   border: 1px solid #ccc;
   border-radius: 4px;
   overflow: hidden;
+  position: absolute;
   right: 0;
 }
 
@@ -369,4 +370,41 @@
   position: absolute;
   left: 50px;
   top: 3vh;
+}
+
+.win-screen{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 500px;
+  width: 90%;
+  height: 200px;
+  background-color: #1A1F2C;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.win-screen h1 {
+  color: #fff;
+  text-align: center;
+}
+
+.win-screen .replay {
+  border: 2px solid #fff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  background-color: #303c5b;
+  color: #fff;
+}
+
+.win-screen .replay:hover {
+  background-color: #fff;
+  color: #1A1F2C;
+  transition: all 0.3s ease;
 }

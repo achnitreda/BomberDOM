@@ -25,8 +25,15 @@ function calcCellSize() {
     return cellSize
 }
 
+let playersInit = false;
+
 
 export function GameView() {
+    if (!playersInit && store.getState().room) {
+        initializePlayers();
+        playersInit = true;
+    }
+
     return mf.createElement("div", { class: "game-view" }, Board(), chatMessage())
 }
 
@@ -36,7 +43,7 @@ function Board() {
     return mf.createElement("div", {
         class: "board",
         style: `grid-template-rows: repeat(13, ${cellSize}px); grid-template-columns: repeat(15, ${cellSize}px);`
-    }, Cells(), players(cellSize), gameHeader())
+    }, Cells(), players(), gameHeader())
 }
 
 
@@ -54,36 +61,45 @@ function Cells() {
     return cells
 }
 
-function players(cellSize) {
+function initializePlayers() {
+    const cellSize = calcCellSize();
     const size = Math.trunc(cellSize)
-    const players = []
     const initPos = [[1, 1], [11, 13], [1, 13], [11, 1]]
+    
+    store.getState().players = [];
+    
     store.getState().room.players.forEach((player, i) => {
-
         const x = cellSize * initPos[i][1];
         const y = cellSize * initPos[i][0];
         const playerx = new Player(x, y, size, store.getState().room.id, player.nickname, player.avatar);
+        
         if (player.nickname == store.getState().u_name) {
             playerx.speed = cellSize * 0.048;
             devicePlayer = playerx;
-            setUpKeysEvents()
+            setUpKeysEvents();
         }
-
-        players.push(mf.createElement("div", {
-            class: "player",
-            style: `width: ${size}px; height: ${size}px; transform: translate(${x}px, ${y}px);`,
-            ref: (el) => {
-                playerx.element = el
-                playerx.bgResize()
-            }
-        }))
-
+        
         store.getState().players.push(playerx);
+    });
+}
 
-    })
-    console.log(store.getState().players);
-
-    return players
+function players() {
+    if (!store.getState().players || store.getState().players.length === 0) {
+        return [];
+    }
+    
+    return store.getState().players.map(player => {
+        return mf.createElement("div", {
+            class: "player",
+            style: `width: ${player.size}px; height: ${player.size}px; transform: translate(${player.position.x}px, ${player.position.y}px);`,
+            ref: (el) => {
+                if (!player.element) {
+                    player.element = el;
+                    player.bgResize();
+                }
+            }
+        });
+    });
 }
 
 const keys = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"]
@@ -124,6 +140,7 @@ function removeKeysEvents() {
 }
 
 
+
 function gameHeader() {
     const player = store.getState().players.find(player => player.name == store.getState().u_name)
     return mf.createElement("span", {
@@ -150,12 +167,12 @@ function heart() {
 
 export function winScreen(name) {
     return mf.createElement('div', { class: "win-screen" },
-        mf.createElement('h1', { id: 'h1' }, `THE WINNER IS ${name}`),
+        mf.createElement('h1', { id: 'h1' }, name ? `THE WINNER IS : ${name} 🎉` : `IT'S A DRAW 🤝`),
         mf.createElement('span', {
             class: 'replay',
             onclick: () => {
-                // store.setState({view: 'login'})
-                store.setState({ players: [] })
+                store.setState({ players: [],u_name: "",messages: []})
+                playersInit = false
                 removeKeysEvents()
                 Render('login');
             }
