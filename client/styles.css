@@ -251,6 +251,7 @@
   background-color: #4564b3b4;
   border-radius: 8px;
   padding: 2rem;
+  box-sizing: border-box;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   width: 90%;
   max-width: 600px;
@@ -286,14 +287,18 @@
 }
 
 .chat-container {
-  display: flex;
-  flex-direction: column;
+  /* display: flex; */
+  /* flex-direction: column; */
+  width: 90%;
   height: 300px;
   border: 1px solid #ccc;
+  max-width: 600px;
   border-radius: 4px;
+  box-sizing: border-box;
   overflow: hidden;
-  position: absolute;
-  right: 0;
+  margin: auto;
+  /* position: absolute; */
+  /* right: 0; */
 }
 
 .chat-messages {
@@ -301,6 +306,7 @@
   overflow-y: auto;
   padding: 0.5rem;
   background: #1A1F2C;
+  height: 73%;
   color: white;
 }
 

@@ -70,9 +70,17 @@ wsServer.on("connection", (ws) => {
                     }
                 })
 
-                if (room.players.length >= 2 && room.status === "open") {
-                    room.startWaitingCountdown();
+                if (room.players.length == 2) {
+                    room.startWaitingCountdown(20, true);
+                    setTimeout(() => {
+                        room.startWaitingCountdown(10, false);
+                    }, 20000)
                 }
+
+                if (room.players.length == 4) {
+                    room.startWaitingCountdown(10, false);
+                }
+
 
                 break;
             case 'chatMessage':

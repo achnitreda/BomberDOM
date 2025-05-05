@@ -58,8 +58,9 @@ export class Player {
             const j = Math.trunc((this.position.x + (this.size * 0.5)) / this.size)
             const b = new Bomb(i, j, this.size, this)
             this.bombs.push(b)
+            store.getState().room.map[i][j] = 5
             setTimeout(() => {
-                b.explod()
+                b?.explod()
             }, 3000)
         }
     }

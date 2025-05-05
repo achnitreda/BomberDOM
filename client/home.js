@@ -6,11 +6,10 @@ function handleNameSub() {
     let ws = store.getState().ws
 
     if (!ws) {
-        ws = new WebSocket("ws://localhost:3000")
+        ws = new WebSocket("ws://10.1.15.1:3000")
         store.setState({ ws })
 
         ws.onopen = () => {
-            console.log("ws connected front!!!!");
             const msg = {
                 type: "join",
                 u_name: name
@@ -25,19 +24,16 @@ function handleNameSub() {
                     store.setState({ loginError: "this name is taken, choose another one!!!" }); break;
                 case "waiting room update":
 
-                    store.setState({
-                        // view: "waiting",
-                        playersNames: data.payload.playersNames,
-                        playerCount: data.payload.playerCount,
-                    });
-                    Render("waiting");
+                        store.setState({
+                            playersNames: data.payload.playersNames,
+                            playerCount: data.payload.playerCount,
+                        });
+                        Render("waiting");
                     break;
                 case 'countdown':
                     store.setState({ countdown: data.countdown, isWaiting: data.isWaiting });
-                    // Render('countdown');
                     break;
                 case 'start game':
-                    // store.setState({ view: 'game' });
                     store.setState({ room: data.game });
                     Render('game');
                     break;
@@ -79,14 +75,6 @@ function handleNameSub() {
                         }
                     })
                     break;
-                case "disconnect":
-                    store.getState().players.forEach(player => {
-                        if (player.name === data.name) {
-                            const idx = store.getState().players.indexOf(player)
-                            player.element.remove()
-                            store.getState().players.splice(idx, 1)
-                        }
-                    })
 
             }
         }

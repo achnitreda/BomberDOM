@@ -1,4 +1,4 @@
-import { Render, store,id } from "./game.js";
+import { Render, store, id } from "./game.js";
 
 export class Bomb {
   constructor(i, j, size, owner) {
@@ -37,6 +37,7 @@ export class Bomb {
   }
 
   explod() {
+    store.getState().room.map[this.i][this.j] = 0
     this.element.classList.remove("bomb")
     const idx = this.owner.bombs.indexOf(this)
     this.owner.explotionBombs.push(this)
@@ -58,7 +59,7 @@ export class Bomb {
           const val = store.getState().room.map[ni][nj]
           if (c == 1) {
             const el = document.getElementById(`${ni}#${nj}`)
-            if (val == 1 || val == 2) {
+            if (val == 1 || val == 2 || val == 5) {
               let classN = store.getState().room.powerUps[`_${ni}_${nj}`];
 
               dirs[i][0] = 0;
@@ -75,7 +76,7 @@ export class Bomb {
                 const pi = Math.trunc((player.position.y + (player.size * 0.5)) / this.size)
                 const pj = Math.trunc((player.position.x + (player.size * 0.5)) / this.size)
                 const powerUp = store.getState().room.powerUps[`_${ni}_${nj}`]
-                if(powerUp) {
+                if (powerUp) {
                   store.getState().room.powerUps[`_${ni}_${nj}`] = "";
                   el.classList.remove(powerUp)
                 }
@@ -110,17 +111,17 @@ export class Bomb {
                 }
 
                 setTimeout(() => {
-                  el.style.backgroundImage = '';
+                  if(el)el.style.backgroundImage = '';
                 }, 700)
 
                 if (((pi == ni && pj == nj) || (pi == this.i && pj == this.j)) && player.alive && !player.revive) {
                   player.death()
                   setTimeout(() => {
-                    if(store.getState().players.length == 1) {
+                    if (store.getState().players.length == 1) {
                       cancelAnimationFrame(id)
                       // store.setState({view: "game over"})
                       Render("game over")
-                    }else if (store.getState().players.length == 0) {
+                    } else if (store.getState().players.length == 0) {
                       cancelAnimationFrame(id)
                       Render("game over")
                     }
@@ -171,7 +172,10 @@ export class Bomb {
   }
 
   setUpBg(url, x, y, el) {
-    el.style.backgroundSize = `${this.size * x}px ${this.size * y}px`;
-    el.style.backgroundImage = url;
+    if (el) {
+      el.style.backgroundSize = `${this.size * x}px ${this.size * y}px`;
+      el.style.backgroundImage = url;
+    }
+
   }
 }

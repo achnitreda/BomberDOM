@@ -34,7 +34,7 @@ export function GameView() {
         playersInit = true;
     }
 
-    return mf.createElement("div", { class: "game-view" }, Board(), chatMessage())
+    return mf.createElement("div", { class: "game-view" }, Board())
 }
 
 function Board() {
@@ -65,20 +65,20 @@ function initializePlayers() {
     const cellSize = calcCellSize();
     const size = Math.trunc(cellSize)
     const initPos = [[1, 1], [11, 13], [1, 13], [11, 1]]
-    
+
     store.getState().players = [];
-    
+
     store.getState().room.players.forEach((player, i) => {
         const x = cellSize * initPos[i][1];
         const y = cellSize * initPos[i][0];
         const playerx = new Player(x, y, size, store.getState().room.id, player.nickname, player.avatar);
-        
+
         if (player.nickname == store.getState().u_name) {
             playerx.speed = cellSize * 0.048;
             devicePlayer = playerx;
             setUpKeysEvents();
         }
-        
+
         store.getState().players.push(playerx);
     });
 }
@@ -87,7 +87,7 @@ function players() {
     if (!store.getState().players || store.getState().players.length === 0) {
         return [];
     }
-    
+
     return store.getState().players.map(player => {
         return mf.createElement("div", {
             class: "player",
@@ -105,12 +105,10 @@ function players() {
 const keys = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"]
 
 function keyDownHandler(e) {
-    console.log("00");
     if (e.key === "z") {
-        if (e.target.tagName != "INPUT") {
-            devicePlayer.createBomb()
-            store.getState().ws.send(JSON.stringify({ type: "bomb", name: devicePlayer.name, room_id: store.getState().room.id }))
-        }
+        devicePlayer?.createBomb()
+        store.getState().ws.send(JSON.stringify({ type: "bomb", name: devicePlayer.name, room_id: store.getState().room.id }))
+
     }
 
     if (keys.includes(e.key) && !devicePlayer.moveKeys.includes(e.key)) {
@@ -120,12 +118,11 @@ function keyDownHandler(e) {
 }
 
 function keyUpHandler(e) {
-    console.log("11");
-        const keyIdx = devicePlayer.moveKeys.indexOf(e.key)
-        if (keyIdx != -1) {
-            devicePlayer._sendPosition(e.key, "stop")
-            devicePlayer.moveKeys.splice(keyIdx, 1)
-        }
+    const keyIdx = devicePlayer.moveKeys.indexOf(e.key)
+    if (keyIdx != -1) {
+        devicePlayer._sendPosition(e.key, "stop")
+        devicePlayer.moveKeys.splice(keyIdx, 1)
+    }
 }
 
 function setUpKeysEvents() {
@@ -171,7 +168,7 @@ export function winScreen(name) {
         mf.createElement('span', {
             class: 'replay',
             onclick: () => {
-                store.setState({ players: [],u_name: "",messages: []})
+                store.setState({ players: [], u_name: "", messages: [] })
                 playersInit = false
                 removeKeysEvents()
                 Render('login');

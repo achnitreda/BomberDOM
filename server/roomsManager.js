@@ -59,7 +59,7 @@ class Room {
                     map[i][j] = type;
                     let classN = "";
                     if (type == soft) {
-                        if (Math.random() > .6) classN = PowerUps[Math.trunc(Math.random() * 4)]
+                        if (Math.random() >= .5) classN = PowerUps[Math.trunc(Math.random() * 4)]
                     }
                     // console.log(classN);
 
@@ -71,25 +71,21 @@ class Room {
         return map
     }
 
-    startWaitingCountdown() {
-        if (this.countdownInterval) return;
-
-        this.countdown = 7;
+    startWaitingCountdown(c, v) {
+        clearInterval(this.countdownInterval)
+        // console.log(c);
+        
+        this.countdown = c;
 
         this.broadcast({
             type: 'countdown',
             countdown: this.countdown,
-            isWaiting: true
+            isWaiting: v
         });
 
         this.countdownInterval = setInterval(() => {
             this.countdown--;
-
-            if (this.players.length === 4 && this.countdown > 10) {
-                this.countdown = 10;
-            }
-
-            if (this.countdown <= 3) {
+            if (!v) {
                 this.status = 'countdown';
             }
 
@@ -101,7 +97,7 @@ class Room {
                 this.broadcast({
                     type: 'countdown',
                     countdown: this.countdown,
-                    isWaiting: (this.countdown > 10)
+                    isWaiting: v
                 });
             }
         }, 1000);
