@@ -6,7 +6,7 @@ function handleNameSub() {
     let ws = store.getState().ws
 
     if (!ws) {
-        ws = new WebSocket("ws://10.1.15.1:3000")
+        ws = new WebSocket("ws://0.0.0.0:3000")
         store.setState({ ws })
 
         ws.onopen = () => {
