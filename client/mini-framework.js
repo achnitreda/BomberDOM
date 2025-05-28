@@ -463,6 +463,19 @@ const MiniFramework = {
         if (this.events[eventName]) {
             this.events[eventName].forEach(handler => handler(data))
         }
+    },
+
+    /**
+     * Custom event listener
+     * @param {string} eventName - Name of the event
+     * @param {EventListener} handler - Event handler function
+     * @param {boolean | AddEventListenerOptions} options - Event options
+     * @returns {Function} Cleanup function to remove the listener
+     */
+    listener(eventName, handler, options = {}) {
+        document.addEventListener(eventName, handler, options);
+        
+        return () => document.removeEventListener(eventName, handler);
     }
 }
 

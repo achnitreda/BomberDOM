@@ -1,12 +1,13 @@
 import { Render, store } from "./game.js";
 import mf from "./mini-framework.js";
-import { chatMessage } from "./waitingRoom.js";
 import { Player } from "./player.js";
 
 const MIN_CELL_SIZE = 32;
 const MAX_CELL_SIZE = 64;
 
 let devicePlayer
+
+let keyEventCleanup = null
 
 function calcCellSize() {
     const windowWidth = window.innerWidth;
@@ -126,14 +127,22 @@ function keyUpHandler(e) {
 }
 
 function setUpKeysEvents() {
-    addEventListener("keydown", keyDownHandler)
-    addEventListener("keyup", keyUpHandler)
+    const keyDownCleanup = mf.listener("keydown", keyDownHandler)
+    const keyUpCleanup = mf.listener("keyup", keyUpHandler)
+
+    keyEventCleanup = () => {
+        keyDownCleanup();
+        keyUpCleanup();
+    };
 }
 
 
 function removeKeysEvents() {
-    removeEventListener("keydown", keyDownHandler)
-    removeEventListener("keyup", keyUpHandler)
+    debugger
+   if (keyEventCleanup) {
+        keyEventCleanup();
+        keyEventCleanup = null;
+    }
 }
 
 
