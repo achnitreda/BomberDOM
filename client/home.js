@@ -1,12 +1,12 @@
 import mf from "./mini-framework.js"
-import { Render, store } from "./game.js";
+import { id, Render, store } from "./game.js";
 
 function handleNameSub() {
     const name = store.getState().u_name
     let ws = store.getState().ws
 
     if (!ws) {
-        ws = new WebSocket("ws://0.0.0.0:3000")
+        ws = new WebSocket("3000")
         store.setState({ ws })
 
         ws.onopen = () => {
@@ -75,7 +75,27 @@ function handleNameSub() {
                         }
                     })
                     break;
+                case "player remove": {
+                    let player;
+                    const ps = store.getState().players.forEach(p => {
+                        if (p.name == data.payload.name) {
+                            player = p
+                        }
+                    });
 
+                    const idx = store.getState().players.indexOf(player);
+                    if (idx != -1) {
+                        store.getState().players.splice(idx, 1)
+                    }
+
+                    player.element.remove();
+                    console.log( store.getState().players);
+                    if (store.getState().players.length == 1 || store.getState().players.length == 0) {
+                      cancelAnimationFrame(id)
+                      Render("game over")
+                    }
+                    
+                }
             }
         }
 

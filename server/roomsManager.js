@@ -18,7 +18,6 @@ class Room {
             sadako: false,
             sith: false
         }
-        // console.log(this.powerUps);
     }
 
     nameExist(u_name) {
@@ -61,7 +60,6 @@ class Room {
                     if (type == soft) {
                         if (Math.random() >= .5) classN = PowerUps[Math.trunc(Math.random() * 4)]
                     }
-                    // console.log(classN);
 
                     if (classN) powerUps[`_${i}_${j}`] = classN
                 }
@@ -73,7 +71,6 @@ class Room {
 
     startWaitingCountdown(c, v) {
         clearInterval(this.countdownInterval)
-        // console.log(c);
         
         this.countdown = c;
 
@@ -112,23 +109,6 @@ class Room {
         for (const player of this.players) {
             player.ws.send(JSON.stringify(msg));
         }
-    }
-
-    broadcastToOthers(msg, sender) {
-        for (const player of this.players) {
-            if (player !== sender) {
-                client.send(JSON.stringify(msg))
-            }
-        }
-    }
-
-    broadcastMsg(msg) {
-        const msgx = JSON.stringify(msg)
-        this.players.forEach(player => {
-            if (player.nickname !== msg.name) {
-                player.ws.send(msgx)
-            }
-        })
     }
 
     sendChatMessage(nickname, text) {

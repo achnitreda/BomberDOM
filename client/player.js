@@ -138,7 +138,7 @@ export class Player {
                     break;
                 case "range":
                     this.bombRange++
-                    console.log("ddd",this.bombRange);
+                    // console.log("ddd",this.bombRange);
                     break;
                 case "amount":
                     this.bombsCount++

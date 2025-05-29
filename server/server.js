@@ -101,6 +101,7 @@ wsServer.on("connection", (ws) => {
                     break;
                 case "bomb":
                     RoomsManager.broadcastMsg(data)
+                    break;
                 default:
                 console.log('Unknown message type:', data.type); 
             }
@@ -121,6 +122,13 @@ wsServer.on("connection", (ws) => {
                     playerCount: room.players.length
                 }
             })
+        } else {
+            room.broadcast({
+                type: "player remove",
+                payload: {
+                    name: player.nickname
+                }
+            })
         }
     })
     ws.on("error", (err) => console.log(err));
@@ -129,6 +137,6 @@ wsServer.on("connection", (ws) => {
 
 
 
-server.listen(3000, "0.0.0.0", () => {
-    console.log("server started at http://0.0.0.0:3000");
+server.listen(3000, "", () => {
+    console.log("server started at http://localhost:3000");
 })

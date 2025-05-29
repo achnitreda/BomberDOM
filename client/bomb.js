@@ -117,11 +117,7 @@ export class Bomb {
                 if (((pi == ni && pj == nj) || (pi == this.i && pj == this.j)) && player.alive && !player.revive) {
                   player.death()
                   setTimeout(() => {
-                    if (store.getState().players.length == 1) {
-                      cancelAnimationFrame(id)
-                      // store.setState({view: "game over"})
-                      Render("game over")
-                    } else if (store.getState().players.length == 0) {
+                    if (store.getState().players.length == 1 || store.getState().players.length == 0) {
                       cancelAnimationFrame(id)
                       Render("game over")
                     }
