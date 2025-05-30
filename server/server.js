@@ -79,14 +79,14 @@ wsServer.on("connection", (ws) => {
                     })
 
                     if (room.players.length == 2) {
-                        room.startWaitingCountdown(20, true);
+                        room.startWaitingCountdown(5, true);
                         setTimeout(() => {
-                            room.startWaitingCountdown(10, false);
-                        }, 20000)
+                            room.startWaitingCountdown(5, false);
+                        }, 2000)
                     }
 
                     if (room.players.length == 4) {
-                        room.startWaitingCountdown(10, false);
+                        room.startWaitingCountdown(2, false);
                     }
 
 
@@ -137,6 +137,6 @@ wsServer.on("connection", (ws) => {
 
 
 
-server.listen(3000, "", () => {
+server.listen(3000, "0.0.0.0", () => {
     console.log("server started at http://localhost:3000");
 })

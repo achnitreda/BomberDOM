@@ -1,6 +1,6 @@
 import mf from "./mini-framework.js"
 import { store } from "./game.js"
-import { particls } from "./home.js";
+
 
 
 export function chatMessage() {
@@ -49,7 +49,7 @@ export function chatMessage() {
 export function WaitingRoom() {
     const { playerCount, playersNames, countdown, isWaiting } = store.getState();
     
-    return mf.createElement("div", { class: "home-view" }, particls,
+    return mf.createElement("div", { class: "home-view" },
         mf.createElement("div", { class: "waiting-container" },
             mf.createElement("h2", {}, "Waiting for players..."),
             mf.createElement("p", {}, `Players connected: ${playerCount}/4`),

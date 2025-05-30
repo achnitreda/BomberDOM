@@ -168,7 +168,7 @@ function gameHeader() {
 }
 
 function heart() {
-    return mf.createElement('p', {}, '❤️')
+    return mf.createElement('span', {},'💚')
 }
 
 export function winScreen(name) {
